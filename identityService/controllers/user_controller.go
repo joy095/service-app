@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"context"
+	"errors"
 	"identity/config/db"
 	"identity/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // UserController handles user-related requests
@@ -76,6 +80,67 @@ func (uc *UserController) Login(c *gin.Context) {
 		"tokens": gin.H{
 			"access_token":  accessToken,
 			"refresh_token": refreshToken,
+		},
+	})
+}
+
+func (uc *UserController) RefreshToken(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Query the database to find the user with this refresh token
+	var user models.User
+	query := `SELECT id, username, email, refresh_token FROM users WHERE refresh_token = $1`
+	err := db.DB.QueryRow(context.Background(), query, req.RefreshToken).Scan(
+		&user.ID, &user.Username, &user.Email, &user.RefreshToken,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Token not found in database
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+		} else {
+			// Database error
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		}
+		return
+	}
+
+	// Generate a new access token
+	accessToken, err := models.GenerateAccessToken(user.ID, time.Minute*15)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		return
+	}
+
+	// Generate a new refresh token (optional, for token rotation)
+	newRefreshToken, err := models.GenerateRefreshToken(user.ID, time.Hour*24*7) // Stronger Refresh Token for 7 days
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+
+	// Update the refresh token in the database
+	_, err = db.DB.Exec(context.Background(), `UPDATE users SET refresh_token = $1 WHERE id = $2`, newRefreshToken, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update refresh token"})
+		return
+	}
+
+	// Return the new tokens
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessToken,
+		"refresh_token": newRefreshToken,
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
 		},
 	})
 }

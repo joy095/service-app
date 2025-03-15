@@ -54,7 +54,7 @@ func generateSalt(size int) ([]byte, error) {
 }
 
 // generateSecureToken creates a long secure token (for refresh tokens)
-func generateRefreshToken(userID uuid.UUID, duration time.Duration) (string, error) {
+func GenerateRefreshToken(userID uuid.UUID, duration time.Duration) (string, error) {
 	now := time.Now()
 
 	// Use MapClaims for maximum compatibility
@@ -203,7 +203,7 @@ func CreateUser(db *pgxpool.Pool, username, email, password string) (*User, stri
 		return nil, "", "", fmt.Errorf("failed to generate UUIDv7: %v", err)
 	}
 
-	refreshToken, err := generateRefreshToken(userID, time.Hour*24*7)
+	refreshToken, err := GenerateRefreshToken(userID, time.Hour*24*7) // Stronger Refresh Token for 7 days
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -248,7 +248,7 @@ func LoginUser(db *pgxpool.Pool, username, password string) (*User, string, stri
 		return nil, "", "", err
 	}
 
-	refreshToken, err := generateRefreshToken(user.ID, time.Hour*24*7) // Stronger Refresh Token
+	refreshToken, err := GenerateRefreshToken(user.ID, time.Hour*24*7) // Stronger Refresh Token for 7 days
 	if err != nil {
 		return nil, "", "", err
 	}

@@ -14,6 +14,7 @@ func RegisterRoutes(router *gin.Engine) {
 	// Public routes
 	router.POST("/register", userController.Register)
 	router.POST("/login", userController.Login)
+	router.POST("/refresh-token", userController.RefreshToken)
 
 	// Protected routes
 	protected := router.Group("/")
