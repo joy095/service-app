@@ -1,0 +1,27 @@
+###
+POST http://localhost:8081/register
+Content-Type: application/json
+
+{
+    "username": "test4",
+    "email": "test4@gmail2.com",
+    "password": "1234@Joy"
+}
+
+### 
+POST http://localhost:8081/login
+Content-Type: application/json
+
+{
+    "username": "test2",
+    "password": "1234@Joy"
+}
+
+### 
+POST http://localhost:8081/logout
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDIwNDU4MDYsImlhdCI6MTc0MjA0NDkwNiwiaXNzIjoiaWRlbnRpdHlfc2VydmljZSIsImp0aSI6ImY0MmM1NTQ1LTAyZWEtNDI1ZS04OTlkLTMwZDk3ZjQ1MTg0NSIsIm5iZiI6MTc0MjA0NDkwNiwic3ViIjoiMDE5NTk0YzUtMWM1ZS03ZDIxLTllNGEtOTlkNTVhNTZjMjZhIiwidXNlcl9pZCI6IjAxOTU5NGM1LTFjNWUtN2QyMS05ZTRhLTk5ZDU1YTU2YzI2YSJ9.HPc-vXBq3MHtJ7oWSNlK-6Z_oCkXx3A9Z4VhHbfxsyU
+
+{
+    "user_id": "019594c5-1c5e-7d21-9e4a-99d55a56c26a"
+}
