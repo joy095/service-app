@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"identity/utils/mail"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -40,11 +42,14 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
+	mail.SendOTP(req.Email, mail.GenerateSecureOTP())
+
 	c.JSON(http.StatusCreated, gin.H{
 		"user": gin.H{
 			"id":       user.ID,
 			"username": user.Username,
 			"email":    user.Email,
+			"otp":      mail.GenerateSecureOTP(),
 		},
 		"tokens": gin.H{
 			"access_token":  accessToken,
