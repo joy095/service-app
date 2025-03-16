@@ -3,6 +3,7 @@ package routes
 import (
 	"identity/controllers"
 	"identity/middlewares"
+	"identity/utils/mail"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,6 +16,11 @@ func RegisterRoutes(router *gin.Engine) {
 	router.POST("/register", userController.Register)
 	router.POST("/login", userController.Login)
 	router.POST("/refresh-token", userController.RefreshToken)
+
+	// OTP verification and password reset routes
+	router.POST("/send-otp", mail.RequestOTP)
+	router.POST("/verify-otp", mail.VerifyOTP)
+	// router.POST("/reset-password", userController.ResetPassword)
 
 	// Protected routes
 	protected := router.Group("/")

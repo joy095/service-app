@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  identity-service:
+    build:
+      context: .
+      dockerfile: identityService/Dockerfile
+    env_file:
+      - identityService/.env  # Explicitly reference the .env file inside the identityService directory
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
