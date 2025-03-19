@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"identity/config/db"
+	"identity/logger"
+	logger_middleware "identity/middlewares/logger"
 	"identity/routes"
 	"log"
 	"os"
-
-	"identity/badwords"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -16,26 +15,10 @@ import (
 func init() {
 	godotenv.Load()
 	db.Connect()
+	logger.InitLoggers()
 }
 
 func main() {
-	// Step 1: Load bad words from a text file
-	success, err := badwords.LoadBadWords("badwords/en.txt")
-	if !success {
-		fmt.Println("Failed to load bad words:", err)
-		return
-	}
-	fmt.Println("Bad words loaded successfully!")
-
-	// Test the ContainsBadWords function
-	testInput := "This is a test message with fuck."
-	containsBadWords := badwords.ContainsBadWords(testInput)
-
-	if containsBadWords {
-		fmt.Println("Bad words detected in the input.")
-	} else {
-		fmt.Println("No bad words detected in the input.")
-	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -44,11 +27,15 @@ func main() {
 
 	r := gin.Default()
 
+	// Apply Logger Middleware
+	r.Use(logger_middleware.GinLogger())
+
 	routes.RegisterRoutes(r)
 
-	r.GET("/ping", func(c *gin.Context) {
+	r.GET("/health", func(c *gin.Context) {
+		logger.InfoLogger.Info("Server is healthy")
 		c.JSON(200, gin.H{
-			"message": "pong",
+			"message": "ok",
 		})
 	})
 

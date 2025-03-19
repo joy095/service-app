@@ -2,7 +2,7 @@ package routes
 
 import (
 	"identity/controllers"
-	"identity/middlewares"
+	"identity/middlewares/auth"
 	"identity/utils/mail"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +24,7 @@ func RegisterRoutes(router *gin.Engine) {
 
 	// Protected routes
 	protected := router.Group("/")
-	protected.Use(middlewares.AuthMiddleware())
+	protected.Use(auth.AuthMiddleware())
 	{
 		protected.POST("/logout", userController.Logout)
 		protected.GET("/user/:username", userController.GetUserByUsername)

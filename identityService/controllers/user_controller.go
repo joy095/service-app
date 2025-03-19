@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"identity/config/db"
 	"identity/models"
 	"net/http"
+	"os"
 	"time"
 
 	"identity/utils/mail"
@@ -13,7 +16,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	godotenv.Load()
+}
 
 // UserController handles user-related requests
 type UserController struct{}
@@ -35,6 +43,28 @@ func (uc *UserController) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Check if username contains bad words by calling the word filter service
+	requestBody, err := json.Marshal(map[string]string{
+		"text": req.Username,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to prepare validation request"})
+		return
+	}
+
+	wordFilterService := os.Getenv("WORD_FILTER_SERVICE_URL")
+
+	response, err := http.Post(
+		wordFilterService+"/check",
+		"application/json",
+		bytes.NewBuffer(requestBody),
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate username"})
+		return
+	}
+	defer response.Body.Close()
 
 	user, accessToken, refreshToken, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
 	if err != nil {
