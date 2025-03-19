@@ -1,7 +1,8 @@
 ###
-POST http://localhost:8080/messages
+POST http://localhost:8082/check
 Content-Type: application/json
 
 {
-    "content":"Hello from Kafka!"
+    "text": "Hello World!"
 }
+

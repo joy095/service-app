@@ -4,8 +4,19 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
+
+// BadWordRequest represents a request to check text for bad words
+type BadWordRequest struct {
+	Text string `json:"text" binding:"required"`
+}
+
+// BadWordResponse represents the response from a bad word check
+type BadWordResponse struct {
+	ContainsBadWords bool `json:"containsBadWords"`
+}
 
 // badWords is a list of bad words or patterns loaded from a text file.
 var badWords []string
@@ -35,15 +46,32 @@ func LoadBadWords(filename string) (bool, error) {
 }
 
 // ContainsBadWords checks if the input text contains any bad words.
+// It now checks if the exact word matches any word in the bad words list.
 func ContainsBadWords(text string) bool {
-	lowerText := strings.ToLower(text)
-	for _, badWord := range badWords {
-		if strings.Contains(lowerText, badWord) {
-			fmt.Printf("Bad word detected: %s\n", badWord) // Log the detected bad word
-			return true
+	// Convert input to lowercase and split into words
+	words := strings.Fields(strings.ToLower(text))
+
+	// Check each word against the bad words list
+	for _, word := range words {
+		// Remove any punctuation from the word
+		word = strings.Trim(word, ".,!?;:\"'()[]{}")
+
+		// Check if this word is in the bad words list
+		for _, badWord := range badWords {
+			if strings.ToLower(badWord) == word {
+				fmt.Printf("Bad word detected: %s\n", word)
+				return true
+			}
 		}
 	}
 	return false
+}
+
+// CheckText checks if the input text contains any bad words and returns a response.
+func CheckText(text string) BadWordResponse {
+	return BadWordResponse{
+		ContainsBadWords: ContainsBadWords(text),
+	}
 }
 
 // AddBadWord adds a new bad word to the list.
@@ -59,7 +87,7 @@ func AddBadWord(badWord string) (bool, error) {
 func RemoveBadWord(badWord string) bool {
 	for i, bw := range badWords {
 		if bw == badWord {
-			badWords = append(badWords[:i], badWords[i+1:]...)
+			badWords = slices.Delete(badWords, i, i+1)
 			return true
 		}
 	}
