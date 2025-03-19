@@ -25,7 +25,7 @@ import (
 var smtpClient *mail.SMTPClient
 var redisClient *redis.Client
 var ctx = context.Background()
-var jwtSecret = []byte(os.Getenv("JWT_SECRET")) // Ensure this is set in your .env file
+var jwtSecret = []byte(os.Getenv("JWT_SECRET")) 
 
 func init() {
 	err := godotenv.Load()
@@ -45,6 +45,27 @@ func init() {
 	})
 
 	// Setup SMTP server
+	// server := mail.NewSMTPClient()
+	// server.Host = os.Getenv("SMTP_HOST")
+	// server.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
+	// server.Username = os.Getenv("SMTP_USERNAME")
+	// server.Password = os.Getenv("SMTP_PASSWORD")
+	// server.Encryption = mail.EncryptionTLS
+	// server.KeepAlive = false
+	// server.ConnectTimeout = 10 * time.Second
+	// server.SendTimeout = 10 * time.Second
+
+	
+	
+	// smtpClient, err = server.Connect()
+	// if err != nil {
+	// 	log.Fatal("Failed to connect to SMTP server:", err)
+	// }
+}
+
+
+// Create a new SMTP client connection
+func newSMTPClient() (*mail.SMTPClient, error) {
 	server := mail.NewSMTPClient()
 	server.Host = os.Getenv("SMTP_HOST")
 	server.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
@@ -55,11 +76,9 @@ func init() {
 	server.ConnectTimeout = 10 * time.Second
 	server.SendTimeout = 10 * time.Second
 
-	smtpClient, err = server.Connect()
-	if err != nil {
-		log.Fatal("Failed to connect to SMTP server:", err)
-	}
+	return server.Connect()
 }
+
 
 // Generate a secure OTP using crypto/rand
 func GenerateSecureOTP() string {
@@ -121,6 +140,13 @@ func SendOTP(emailAddress, otp string) error {
 	if err := tmpl.Execute(&body, data); err != nil {
 		return err
 	}
+
+	 // Create a new SMTP client for each email
+	 smtpClient, err := newSMTPClient()
+	 if err != nil {
+		 return fmt.Errorf("failed to connect to SMTP server: %w", err)
+	 }
+	 defer smtpClient.Close()
 
 	email := mail.NewMSG()
 	email.SetFrom(os.Getenv("FROM_EMAIL")).

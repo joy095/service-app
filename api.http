@@ -3,7 +3,7 @@ POST http://localhost:8081/register
 Content-Type: application/json
 
 {
-    "username": "test",
+    "username": "test2",
     "email": "sourva55@gmail.com",
     "password": "1234@Joy"
 }
@@ -54,5 +54,5 @@ Content-Type: application/json
 
 {
     "email": "sourva55@gmail.com",
-    "otp": "998611"
+    "otp": "343020"
 }
