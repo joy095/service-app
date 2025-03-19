@@ -6,6 +6,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"word-filter/logger"
 )
 
 // BadWordRequest represents a request to check text for bad words
@@ -24,6 +25,8 @@ var badWords []string
 // LoadBadWords loads bad words from a text file.
 // Each line in the file represents a bad word or pattern.
 func LoadBadWords(filename string) (bool, error) {
+	logger.InfoLogger.Info("LoadBadWords called")
+
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return false, err
@@ -36,7 +39,7 @@ func LoadBadWords(filename string) (bool, error) {
 	for i := 0; i < len(badWords); i++ {
 		badWords[i] = strings.TrimSpace(badWords[i])
 		if badWords[i] == "" {
-			badWords = append(badWords[:i], badWords[i+1:]...)
+			badWords = slices.Delete(badWords, i, i+1)
 			i-- // Adjust index after removing an empty line
 		}
 	}
@@ -48,6 +51,7 @@ func LoadBadWords(filename string) (bool, error) {
 // ContainsBadWords checks if the input text contains any bad words.
 // It now checks if the exact word matches any word in the bad words list.
 func ContainsBadWords(text string) bool {
+	logger.InfoLogger.Info("ContainsBadWords called")
 	// Convert input to lowercase and split into words
 	words := strings.Fields(strings.ToLower(text))
 
@@ -59,6 +63,7 @@ func ContainsBadWords(text string) bool {
 		// Check if this word is in the bad words list
 		for _, badWord := range badWords {
 			if strings.ToLower(badWord) == word {
+				logger.InfoLogger.Infof("Bad word detected: %s\n", word)
 				fmt.Printf("Bad word detected: %s\n", word)
 				return true
 			}

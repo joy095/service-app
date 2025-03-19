@@ -81,6 +81,6 @@ func InitLoggers() {
 	})
 
 	// Attach service name field
-	InfoLogger = infoBaseLogger.WithField("identity-service", serviceName)
-	ErrorLogger = errorBaseLogger.WithField("identity-service", serviceName)
+	InfoLogger = infoBaseLogger.WithField("word-filter-service", serviceName)
+	ErrorLogger = errorBaseLogger.WithField("word-filter-service", serviceName)
 }

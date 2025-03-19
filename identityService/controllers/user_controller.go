@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"identity/config/db"
+	"identity/logger"
 	"identity/models"
 	"net/http"
 	"os"
@@ -33,6 +34,9 @@ func NewUserController() *UserController {
 
 // Register handles user registration
 func (uc *UserController) Register(c *gin.Context) {
+
+	logger.InfoLogger.Info("Register handler called")
+
 	var req struct {
 		Username string `json:"username" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
@@ -40,6 +44,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.ErrorLogger.Error("Error", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -48,7 +53,9 @@ func (uc *UserController) Register(c *gin.Context) {
 	requestBody, err := json.Marshal(map[string]string{
 		"text": req.Username,
 	})
+
 	if err != nil {
+		logger.ErrorLogger.Error(err, "Failed to prepare validation request")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to prepare validation request"})
 		return
 	}
@@ -60,7 +67,10 @@ func (uc *UserController) Register(c *gin.Context) {
 		"application/json",
 		bytes.NewBuffer(requestBody),
 	)
+	logger.InfoLogger.Info("Word Filter Service Called")
+
 	if err != nil {
+		logger.ErrorLogger.Error(err, "Failed to validate username")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate username"})
 		return
 	}
@@ -68,6 +78,7 @@ func (uc *UserController) Register(c *gin.Context) {
 
 	user, accessToken, refreshToken, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
 	if err != nil {
+		logger.ErrorLogger.Error(err, "Failed to create user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -76,6 +87,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	mail.SendOTP(req.Email, otp)
 
 	c.JSON(http.StatusCreated, gin.H{
+
 		"user": gin.H{
 			"id":       user.ID,
 			"username": user.Username,
@@ -87,22 +99,29 @@ func (uc *UserController) Register(c *gin.Context) {
 			"refresh_token": refreshToken,
 		},
 	})
+
+	logger.InfoLogger.Info("User registered successfully")
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 // Login handles user login
 func (uc *UserController) Login(c *gin.Context) {
+	logger.InfoLogger.Info("Login handler called")
+
 	var req struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.ErrorLogger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, accessToken, refreshToken, err := models.LoginUser(db.DB, req.Username, req.Password)
 	if err != nil {
+		logger.ErrorLogger.Error("Invalid credentials:", err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
@@ -118,14 +137,20 @@ func (uc *UserController) Login(c *gin.Context) {
 			"refresh_token": refreshToken,
 		},
 	})
+
+	logger.InfoLogger.Info("User logged in successfully")
+	c.JSON(http.StatusCreated, gin.H{"message": "User logged in successfully"})
 }
 
 func (uc *UserController) RefreshToken(c *gin.Context) {
+	logger.InfoLogger.Info("RefreshToken token function called")
+
 	var req struct {
 		RefreshToken string `json:"refresh_token" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.ErrorLogger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -140,9 +165,14 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// Token not found in database
+			logger.ErrorLogger.Error("error", "Invalid or expired refresh token")
+
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+
 		} else {
 			// Database error
+			logger.ErrorLogger.Error("error", "Database error")
+
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		}
 		return
@@ -151,6 +181,8 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 	// Generate a new access token
 	accessToken, err := models.GenerateAccessToken(user.ID, time.Minute*15)
 	if err != nil {
+		logger.ErrorLogger.Error("error", "Failed to generate access token")
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return
 	}
@@ -158,6 +190,8 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 	// Generate a new refresh token (optional, for token rotation)
 	newRefreshToken, err := models.GenerateRefreshToken(user.ID, time.Hour*24*7) // Stronger Refresh Token for 7 days
 	if err != nil {
+		logger.ErrorLogger.Error("error", "Failed to generate refresh token")
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
 		return
 	}
@@ -165,6 +199,8 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 	// Update the refresh token in the database
 	_, err = db.DB.Exec(context.Background(), `UPDATE users SET refresh_token = $1 WHERE id = $2`, newRefreshToken, user.ID)
 	if err != nil {
+		logger.ErrorLogger.Error("error", "Failed to update refresh token")
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update refresh token"})
 		return
 	}
@@ -179,52 +215,72 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 			"email":    user.Email,
 		},
 	})
+
+	logger.InfoLogger.Info("RefreshToken is created successfully")
+	c.JSON(http.StatusCreated, gin.H{"message": "RefreshToken is created successfully"})
 }
 
 // Logout handles user logout
 func (uc *UserController) Logout(c *gin.Context) {
+	logger.InfoLogger.Info("Logout handler called")
+
 	var req struct {
 		UserID string `json:"user_id" binding:"required,uuid"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format or missing fields", "error-message": err.Error()})
+		logger.ErrorLogger.Error("error-message", err.Error())
+
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format or missing fields"})
 		return
 	}
 
 	// Get the user ID from the context
 	userIDFromToken, exists := c.Get("userID")
 	if !exists {
+		logger.ErrorLogger.Error("Unauthorized")
+
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	// Ensure the user can only log out their own account
 	if userIDFromToken != req.UserID {
+		logger.ErrorLogger.Error("You can only log out your own account")
+
 		c.JSON(http.StatusForbidden, gin.H{"error": "You can only log out your own account"})
 		return
 	}
 
 	userID, err := uuid.Parse(req.UserID)
 	if err != nil {
+		logger.ErrorLogger.Error("Invalid user ID format")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
 	if err := models.LogoutUser(db.DB, userID); err != nil {
+		logger.ErrorLogger.Error("Failed to logout")
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout"})
 		return
 	}
+
+	logger.InfoLogger.Info("Successfully logged out")
 
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 
 // GetUserByUsername retrieves a user by username
 func (uc *UserController) GetUserByUsername(c *gin.Context) {
+	logger.InfoLogger.Info("GetUserByUsername function called")
+
 	username := c.Param("username")
 
 	user, err := models.GetUserByUsername(db.DB, username)
 	if err != nil {
+		logger.ErrorLogger.Error("User not found")
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -236,4 +292,7 @@ func (uc *UserController) GetUserByUsername(c *gin.Context) {
 			"email":    user.Email,
 		},
 	})
+
+	logger.InfoLogger.Info("User retrieved successfully")
+	c.JSON(http.StatusCreated, gin.H{"message": "User retrieved successfully"})
 }

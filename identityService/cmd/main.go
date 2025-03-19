@@ -13,9 +13,11 @@ import (
 )
 
 func init() {
+	// Initialize loggers before using
+	logger.InitLoggers()
+
 	godotenv.Load()
 	db.Connect()
-	logger.InitLoggers()
 }
 
 func main() {
@@ -39,6 +41,9 @@ func main() {
 		})
 	})
 
+	logger.InfoLogger.Info("Server is started")
+
 	log.Printf("Starting server on port %s...", port)
+
 	r.Run(":" + port)
 }

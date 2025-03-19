@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"identity/logger"
 	"identity/utils"
 
 	"golang.org/x/crypto/argon2"
@@ -55,6 +56,8 @@ func generateSalt(size int) ([]byte, error) {
 
 // generateSecureToken creates a long secure token (for refresh tokens)
 func GenerateRefreshToken(userID uuid.UUID, duration time.Duration) (string, error) {
+	logger.InfoLogger.Info("GenerateRefreshToken called on models")
+
 	now := time.Now()
 
 	// Use MapClaims for maximum compatibility
@@ -77,6 +80,8 @@ func GenerateRefreshToken(userID uuid.UUID, duration time.Duration) (string, err
 	// Sign the token with the secret key
 	tokenString, err := token.SignedString(jwtRefreshSecret)
 	if err != nil {
+
+		logger.ErrorLogger.Errorf("failed to sign token: %v", err)
 		return "", fmt.Errorf("failed to sign token: %v", err)
 	}
 
@@ -85,6 +90,8 @@ func GenerateRefreshToken(userID uuid.UUID, duration time.Duration) (string, err
 
 // HashPassword hashes a password using Argon2id
 func HashPassword(password string) (string, error) {
+	logger.InfoLogger.Info("HashPassword called  on models")
+
 	salt, err := generateSalt(SaltLength)
 	if err != nil {
 		return "", err
@@ -100,18 +107,24 @@ func HashPassword(password string) (string, error) {
 
 // VerifyPassword verifies a password against a stored hash
 func VerifyPassword(password, storedHash string) (bool, error) {
+	logger.InfoLogger.Info("VerifyPassword called on models")
+
 	parts := strings.Split(storedHash, "$")
 	if len(parts) != 2 {
+		logger.ErrorLogger.Error("invalid stored hash format")
 		return false, errors.New("invalid stored hash format")
 	}
 
 	salt, err := base64.RawStdEncoding.DecodeString(parts[0])
 	if err != nil {
+		logger.ErrorLogger.Error(err)
 		return false, err
 	}
 
 	expectedHash, err := base64.RawStdEncoding.DecodeString(parts[1])
 	if err != nil {
+		logger.ErrorLogger.Error(err)
+
 		return false, err
 	}
 
@@ -132,7 +145,7 @@ func GenerateAccessToken(userID uuid.UUID, duration time.Duration) (string, erro
 		"exp":     now.Add(duration).Unix(),
 		"nbf":     now.Unix(),
 		"jti":     uuid.NewString(),
-		"iss":     "identity_service",
+		"iss":     "identity-service",
 	}
 
 	// Create the token
@@ -143,6 +156,8 @@ func GenerateAccessToken(userID uuid.UUID, duration time.Duration) (string, erro
 	// Sign the token with the secret key
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
+		logger.ErrorLogger.Errorf("failed to sign token: %v", err)
+
 		return "", fmt.Errorf("failed to sign token: %v", err)
 	}
 
@@ -151,10 +166,13 @@ func GenerateAccessToken(userID uuid.UUID, duration time.Duration) (string, erro
 
 // ValidateAccessToken with detailed error reporting for debugging
 func ValidateAccessToken(tokenString string) (*jwt.Token, jwt.MapClaims, error) {
+	logger.InfoLogger.Info("ValidateAccessToken called on models")
+
 	// Parse and validate the token
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			logger.ErrorLogger.Errorf("unexpected signing method: %v", token.Header["alg"])
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
@@ -166,6 +184,8 @@ func ValidateAccessToken(tokenString string) (*jwt.Token, jwt.MapClaims, error) 
 
 	if err != nil {
 		// Enhanced error logging with fixed error type handling
+		logger.ErrorLogger.Errorf("Token validation error: %v", err)
+
 		log.Printf("Token validation error: %v", err)
 
 		// Use more specific error messages instead of ValidationError constants
@@ -193,6 +213,8 @@ func ValidateAccessToken(tokenString string) (*jwt.Token, jwt.MapClaims, error) 
 
 // CreateUser registers a new user and returns JWT & refresh token
 func CreateUser(db *pgxpool.Pool, username, email, password string) (*User, string, string, error) {
+	logger.InfoLogger.Info("CreateUser called on models")
+
 	passwordHash, err := HashPassword(password)
 	if err != nil {
 		return nil, "", "", err
@@ -229,10 +251,13 @@ func CreateUser(db *pgxpool.Pool, username, email, password string) (*User, stri
 	}
 
 	return user, accessToken, refreshToken, nil
+
 }
 
 // LoginUser authenticates a user and generates JWT + Refresh Token
 func LoginUser(db *pgxpool.Pool, username, password string) (*User, string, string, error) {
+	logger.InfoLogger.Info("LoginUser called on models")
+
 	user, err := GetUserByUsername(db, username)
 	if err != nil {
 		return nil, "", "", err

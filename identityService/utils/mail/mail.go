@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"identity/config/db"
+	"identity/logger"
 	"identity/models"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ import (
 var smtpClient *mail.SMTPClient
 var redisClient *redis.Client
 var ctx = context.Background()
-var jwtSecret = []byte(os.Getenv("JWT_SECRET")) 
+var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 func init() {
 	err := godotenv.Load()
@@ -43,26 +44,7 @@ func init() {
 			return nil
 		},
 	})
-
-	// Setup SMTP server
-	// server := mail.NewSMTPClient()
-	// server.Host = os.Getenv("SMTP_HOST")
-	// server.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
-	// server.Username = os.Getenv("SMTP_USERNAME")
-	// server.Password = os.Getenv("SMTP_PASSWORD")
-	// server.Encryption = mail.EncryptionTLS
-	// server.KeepAlive = false
-	// server.ConnectTimeout = 10 * time.Second
-	// server.SendTimeout = 10 * time.Second
-
-	
-	
-	// smtpClient, err = server.Connect()
-	// if err != nil {
-	// 	log.Fatal("Failed to connect to SMTP server:", err)
-	// }
 }
-
 
 // Create a new SMTP client connection
 func newSMTPClient() (*mail.SMTPClient, error) {
@@ -78,7 +60,6 @@ func newSMTPClient() (*mail.SMTPClient, error) {
 
 	return server.Connect()
 }
-
 
 // Generate a secure OTP using crypto/rand
 func GenerateSecureOTP() string {
@@ -109,6 +90,8 @@ func storeOTP(email, otp string) error {
 }
 
 func SendOTP(emailAddress, otp string) error {
+	logger.InfoLogger.Info("SendOTP called on mail")
+
 	var user models.User
 	query := `SELECT id, email FROM users WHERE email = $1`
 
@@ -141,18 +124,21 @@ func SendOTP(emailAddress, otp string) error {
 		return err
 	}
 
-	 // Create a new SMTP client for each email
-	 smtpClient, err := newSMTPClient()
-	 if err != nil {
-		 return fmt.Errorf("failed to connect to SMTP server: %w", err)
-	 }
-	 defer smtpClient.Close()
+	// Create a new SMTP client for each email
+	smtpClient, err := newSMTPClient()
+	if err != nil {
+		logger.ErrorLogger.Errorf("failed to connect to SMTP server: %v", err)
+		return fmt.Errorf("failed to connect to SMTP server: %w", err)
+	}
+	defer smtpClient.Close()
 
 	email := mail.NewMSG()
 	email.SetFrom(os.Getenv("FROM_EMAIL")).
 		AddTo(user.Email).
 		SetSubject("Your OTP Code").
 		SetBody(mail.TextHTML, body.String())
+
+	logger.InfoLogger.Info("Sending OTP email to: ", user.Email)
 
 	return email.Send(smtpClient)
 }
@@ -170,16 +156,21 @@ func generateJWT(email string) (string, error) {
 
 // Request OTP API
 func RequestOTP(c *gin.Context) {
+	logger.InfoLogger.Info("RequestOTP called on mail")
+
 	var request struct {
 		Email string `json:"email"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
+		logger.ErrorLogger.Error("Invalid request body")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if request.Email == "" {
+		logger.ErrorLogger.Error("Email is required")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
 		return
 	}
@@ -188,11 +179,13 @@ func RequestOTP(c *gin.Context) {
 	var count int
 	err := db.DB.QueryRow(context.Background(), "SELECT COUNT(*) FROM users WHERE email = $1", request.Email).Scan(&count)
 	if err != nil {
+		logger.ErrorLogger.Error("Failed to process request")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process request"})
 		return
 	}
 
 	if count == 0 {
+		logger.InfoLogger.Info("If the email exists, an OTP has been sent")
 		c.JSON(http.StatusOK, gin.H{"message": "If the email exists, an OTP has been sent"})
 		return
 	}
@@ -200,32 +193,42 @@ func RequestOTP(c *gin.Context) {
 	otp := GenerateSecureOTP()
 	err = storeOTP(request.Email, otp)
 	if err != nil {
+		logger.ErrorLogger.Error("Failed to store OTP")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store OTP"})
 		return
 	}
 
 	err = SendOTP(request.Email, otp)
 	if err != nil {
+		logger.ErrorLogger.Error("Failed to send OTP")
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send OTP"})
 		return
 	}
+
+	logger.InfoLogger.Info("OTP send successfully")
 
 	c.JSON(http.StatusOK, gin.H{"message": "OTP sent successfully"})
 }
 
 // Verify OTP and return JWT token
 func VerifyOTP(c *gin.Context) {
+	logger.InfoLogger.Info("VerifyOTP called on mail")
+
 	var request struct {
 		Email string `json:"email"`
 		OTP   string `json:"otp"`
 	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
+		logger.ErrorLogger.Error("Invalid request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
 	if request.Email == "" || request.OTP == "" {
+		logger.ErrorLogger.Error("Email and OTP are required")
+
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email and OTP are required"})
 		return
 	}
@@ -233,12 +236,16 @@ func VerifyOTP(c *gin.Context) {
 	// Retrieve OTP hash from Redis
 	storedHash, err := redisClient.Get(ctx, "otp:"+request.Email).Result()
 	if err != nil {
+		logger.ErrorLogger.Error("OTP expired or not found")
+
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "OTP expired or not found"})
 		return
 	}
 
 	// Verify OTP
 	if hashOTP(request.OTP) != storedHash {
+		logger.ErrorLogger.Error("Incorrect OTP")
+
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect OTP"})
 		return
 	}
@@ -246,6 +253,8 @@ func VerifyOTP(c *gin.Context) {
 	// Generate JWT token
 	token, err := generateJWT(request.Email)
 	if err != nil {
+		logger.ErrorLogger.Error("Failed to generate JWT token")
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate JWT token"})
 		return
 	}
@@ -256,11 +265,14 @@ func VerifyOTP(c *gin.Context) {
 	// Delete OTP from Redis
 	redisClient.Del(ctx, "otp:"+request.Email)
 
-	c.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully", "token": token})
+	logger.InfoLogger.Info("OTP verified successfully")
+
+	c.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
 
 	// Update user's email verification status
 	_, err = db.DB.Exec(context.Background(), "UPDATE users SET is_verified_email = true WHERE email = $1", request.Email)
 	if err != nil {
+		logger.ErrorLogger.Error("Failed to update email verification status")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update email verification status"})
 		return
 	}

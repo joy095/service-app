@@ -6,9 +6,18 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"word-filter/badwords"
+	"word-filter/logger"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	logger.InitLoggers()
+
+	godotenv.Load()
+}
 
 func main() {
 	// Set up Gin router
@@ -17,9 +26,13 @@ func main() {
 	// Step 1: Load bad words from a text file
 	success, err := badwords.LoadBadWords("badwords/en.txt")
 	if !success {
+		logger.ErrorLogger.Error("Failed to load bad words:", err)
 		fmt.Println("Failed to load bad words:", err)
 		return
 	}
+
+	logger.InfoLogger.Info("Bad words loaded successfully!")
+
 	fmt.Println("Bad words loaded successfully!")
 
 	port := os.Getenv("PORT")
@@ -29,9 +42,13 @@ func main() {
 
 	// Keep only the essential endpoint for checking bad words
 	router.POST("/check", func(c *gin.Context) {
+		logger.InfoLogger.Info("Check route hit")
+
 		var request badwords.BadWordRequest
 
 		if err := c.ShouldBindJSON(&request); err != nil {
+			logger.ErrorLogger.Error(err.Error())
+
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -43,14 +60,16 @@ func main() {
 
 	// Health check endpoint (keeping this as it's a good practice)
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "Service is running"})
+		c.JSON(http.StatusOK, gin.H{"message": "ok"})
 	})
 
 	// Start the Gin server directly
 	serverAddr := ":" + port
+	logger.InfoLogger.Info("Starting HTTP server on " + serverAddr)
 	log.Println("Starting HTTP server on " + serverAddr)
 
 	if err := router.Run(serverAddr); err != nil {
+		logger.ErrorLogger.Errorf("Failed to start server: %v", err)
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"identity/logger"
 	"log"
 	"os"
 
@@ -21,16 +22,21 @@ func Connect() {
 	dsn := os.Getenv("DATABASE_URL")
 
 	if _, err := pgxpool.ParseConfig(dsn); err != nil {
+		logger.ErrorLogger.Error("Unable to parse database URL:", err)
 		fmt.Println("Unable to parse database URL:", err)
 		os.Exit(1)
 	}
 
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
+		logger.ErrorLogger.Error("Unable to connect to database:", err)
+
 		fmt.Println("Unable to connect to database:", err)
 		os.Exit(1)
 	}
 
 	DB = pool
+	logger.InfoLogger.Info("Connected to PostgreSQL!")
+
 	fmt.Println("Connected to PostgreSQL!")
 }
