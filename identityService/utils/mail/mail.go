@@ -38,6 +38,10 @@ func init() {
 		Addr:     os.Getenv("REDIS_HOST"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		DB:       0,
+		OnConnect: func(ctx context.Context, cn *redis.Conn) error {
+			log.Println("Connected to Redis")
+			return nil
+		},
 	})
 
 	// Setup SMTP server
@@ -82,26 +86,21 @@ func hashOTP(otp string) string {
 // Store OTP hash in Redis with expiration
 func storeOTP(email, otp string) error {
 	hashedOTP := hashOTP(otp)
-	return redisClient.Set(ctx, "otp:"+email, hashedOTP, 10*time.Minute).Err()
+	return redisClient.Set(context.Background(), "otp:"+email, hashedOTP, 10*time.Minute).Err()
 }
 
-// Generate JWT token
-func generateJWT(email string) (string, error) {
-	claims := jwt.MapClaims{
-		"email": email,
-		"exp":   time.Now().Add(10 * time.Minute).Unix(), // Token expires in 10 minutes
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
-}
-
-// Send OTP via email
 func SendOTP(emailAddress, otp string) error {
 	var user models.User
 	query := `SELECT id, email FROM users WHERE email = $1`
+
+	// query := `SELECT id FROM users WHERE id = $1`
 	err := db.DB.QueryRow(context.Background(), query, emailAddress).Scan(&user.ID, &user.Email)
 	if err != nil {
+		return err
+	}
+
+	// Store OTP before sending email
+	if err := storeOTP(emailAddress, otp); err != nil {
 		return err
 	}
 
@@ -130,6 +129,17 @@ func SendOTP(emailAddress, otp string) error {
 		SetBody(mail.TextHTML, body.String())
 
 	return email.Send(smtpClient)
+}
+
+// Generate JWT token
+func generateJWT(email string) (string, error) {
+	claims := jwt.MapClaims{
+		"email": email,
+		"exp":   time.Now().Add(10 * time.Minute).Unix(), // Token expires in 10 minutes
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
 }
 
 // Request OTP API
@@ -221,4 +231,12 @@ func VerifyOTP(c *gin.Context) {
 	redisClient.Del(ctx, "otp:"+request.Email)
 
 	c.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully", "token": token})
+
+	// Update user's email verification status
+	_, err = db.DB.Exec(context.Background(), "UPDATE users SET is_verified_email = true WHERE email = $1", request.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update email verification status"})
+		return
+	}
+
 }
