@@ -42,14 +42,15 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	mail.SendOTP(req.Email, mail.GenerateSecureOTP())
+	otp := mail.GenerateSecureOTP()
+	mail.SendOTP(req.Email, otp)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"user": gin.H{
 			"id":       user.ID,
 			"username": user.Username,
 			"email":    user.Email,
-			"otp":      mail.GenerateSecureOTP(),
+			"otp":      otp,
 		},
 		"tokens": gin.H{
 			"access_token":  accessToken,
