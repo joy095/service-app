@@ -76,6 +76,21 @@ func (uc *UserController) Register(c *gin.Context) {
 	}
 	defer response.Body.Close()
 
+	var wordFilterResponse struct {
+		ContainsBadWords bool `json:"containsBadWords"`
+	}
+
+	if err := json.NewDecoder(response.Body).Decode(&wordFilterResponse); err != nil {
+		logger.ErrorLogger.Error(err, "Failed to decode validation response")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode validation response"})
+		return
+	}
+
+	if wordFilterResponse.ContainsBadWords {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username contains inappropriate words"})
+		return
+	}
+
 	user, accessToken, refreshToken, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
 	if err != nil {
 		logger.ErrorLogger.Error(err, "Failed to create user")

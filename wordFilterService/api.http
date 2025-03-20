@@ -3,6 +3,6 @@ POST http://localhost:8082/check
 Content-Type: application/json
 
 {
-    "username": "Hello World!"
+    "text": "Hello World! fuck"
 }
 
