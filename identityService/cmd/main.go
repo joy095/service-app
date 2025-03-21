@@ -1,12 +1,14 @@
 package main
 
 import (
-	"identity/config/db"
-	"identity/logger"
-	logger_middleware "identity/middlewares/logger"
-	"identity/routes"
 	"log"
 	"os"
+
+	"github.com/joy095/identity/routes"
+
+	"github.com/joy095/identity/config/db"
+	"github.com/joy095/identity/logger"
+	logger_middleware "github.com/joy095/identity/middlewares/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -35,7 +37,7 @@ func main() {
 	routes.RegisterRoutes(r)
 
 	r.GET("/health", func(c *gin.Context) {
-		logger.InfoLogger.Info("Server is healthy")
+
 		c.JSON(200, gin.H{
 			"message": "ok",
 		})

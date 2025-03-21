@@ -3,9 +3,10 @@ package db
 import (
 	"context"
 	"fmt"
-	"identity/logger"
 	"log"
 	"os"
+
+	"github.com/joy095/identity/logger"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"

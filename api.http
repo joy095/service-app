@@ -1,5 +1,11 @@
+
 ###
-POST http://localhost:8081/register
+get http://localhost/api/auth/health
+
+
+
+###
+POST http://localhost/v1/auth/register
 Content-Type: application/json
 
 {

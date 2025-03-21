@@ -3,7 +3,7 @@ package logger_middleware
 import (
 	"time"
 
-	"identity/logger"
+	"github.com/joy095/identity/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

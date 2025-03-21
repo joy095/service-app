@@ -30,13 +30,3 @@ func GetJWTRefreshSecret() []byte {
 	}
 	return []byte(secret)
 }
-
-func GetWordFilterService() []byte {
-
-	secret := os.Getenv("WORD_FILTER_SERVICE_URL")
-	if secret == "" {
-		fmt.Println("WARNING: WORD_FILTER_SERVICE_URL environment variable not set.")
-		return []byte("http://localhost:8082")
-	}
-	return []byte(secret)
-}

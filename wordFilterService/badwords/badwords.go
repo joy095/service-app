@@ -6,7 +6,8 @@ import (
 	"os"
 	"slices"
 	"strings"
-	"word-filter/logger"
+
+	"github.com/joy095/word-filter/logger"
 )
 
 // BadWordRequest represents a request to check text for bad words

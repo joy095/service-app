@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"identity/logger"
-	"identity/utils"
+	"github.com/joy095/identity/logger"
+	"github.com/joy095/identity/utils"
 
 	"golang.org/x/crypto/argon2"
 )

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"word-filter/badwords"
-	"word-filter/logger"
+	"github.com/joy095/word-filter/badwords"
+	"github.com/joy095/word-filter/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

@@ -6,14 +6,16 @@ import (
 	"crypto/rand"
 	"fmt"
 	"html/template"
-	"identity/config/db"
-	"identity/logger"
-	"identity/models"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/joy095/identity/config/db"
+	"github.com/joy095/identity/models"
+
+	"github.com/joy095/identity/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

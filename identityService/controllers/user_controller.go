@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"identity/config/db"
-	"identity/logger"
-	"identity/models"
 	"net/http"
 	"os"
 	"time"
 
-	"identity/utils/mail"
+	"github.com/joy095/identity/config/db"
+	"github.com/joy095/identity/logger"
+	"github.com/joy095/identity/models"
+
+	"github.com/joy095/identity/utils/mail"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

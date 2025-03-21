@@ -1,30 +1,18 @@
-FROM golang:1.24-alpine AS go-builder
+FROM golang:1.24-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/identityService
 
-# Copy go.mod and go.sum (relative to the Docker build context)
-COPY ./go.mod ./go.sum ./
-
-# Download dependencies
+# Copy go.mod and go.sum to cache dependencies
+COPY ./identityService/go.mod ./identityService/go.sum ./
 RUN go mod download
 
-# Copy the rest of the Go project
-COPY ./ ./
+# Copy the rest of the code
+COPY /identityService .
 
-# Build the Gin service from cmd/main.go
-RUN go build -o gin-service ./cmd/main.go
-
-# Minimal final image
-FROM alpine:latest
-
-WORKDIR /root/
-
-# Copy the built binary
-COPY --from=go-builder /app/gin-service .
-
-# Set environment variable for default port
-ENV PORT=8081
+# Build the Go application
+RUN go build -o main cmd/main.go
 
 EXPOSE 8081
 
-CMD ["./gin-service"]
+# Run the application
+CMD ["./main"]

@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"identity/controllers"
-	"identity/middlewares/auth"
-	"identity/utils/mail"
+	"github.com/joy095/identity/controllers"
+	"github.com/joy095/identity/middlewares/auth"
+	"github.com/joy095/identity/utils/mail"
 
 	"github.com/gin-gonic/gin"
 )

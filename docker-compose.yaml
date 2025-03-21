@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    env_file:
+      - api-gateway/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - identity-service
+      - image-service
+      - word-service
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: identityService/Dockerfile
+    env_file:
+      - identityService/.env
+    ports:
+      - "8081:8081"
+
+  word-service:
+    build:
+      context: .
+      dockerfile: wordFilterService/Dockerfile
+    env_file:
+      - wordFilterService/.env
+    ports:
+      - "8082:8082"
+
+  image-service:
+    build:
+      context: .
+      dockerfile: imageCheck/Dockerfile
+    env_file:
+      - imageCheck/.env
+    ports:
+      - "8083:8083"
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway

@@ -2,11 +2,12 @@ package auth
 
 import (
 	"fmt"
-	"identity/logger"
-	"identity/utils"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/joy095/identity/logger"
+	"github.com/joy095/identity/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

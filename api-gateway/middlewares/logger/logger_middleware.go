@@ -3,7 +3,7 @@ package logger_middleware
 import (
 	"time"
 
-	"github.com/joy095/word-filter/logger"
+	"github.com/joy095/api-gateway/logger"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
