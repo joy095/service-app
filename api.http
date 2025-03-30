@@ -1,16 +1,36 @@
 
 ###
-get http://localhost/api/auth/health
-
-
+get http://localhost:8080/health
 
 ###
-POST http://localhost/v1/auth/register
+get http://localhost:8080/v1/auth/health
+
+###
+POST http://localhost:8080/v1/auth/register
 Content-Type: application/json
 
 {
-    "username": "hello",
+    "username": "hi",
     "email": "sourva55@gmail.com",
+    "password": "1234@Joy"
+}
+
+###
+POST http://localhost:8081/register
+Content-Type: application/json
+
+{
+    "username": "hello2",
+    "email": "sourva55@gmail.com",
+    "password": "1234@Joy"
+}
+
+### 
+POST http://localhost:8080/v1/auth/login
+Content-Type: application/json
+
+{
+    "username": "test2",
     "password": "1234@Joy"
 }
 

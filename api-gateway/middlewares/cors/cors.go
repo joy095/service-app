@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -13,11 +14,10 @@ import (
 func CorsMiddleware() gin.HandlerFunc {
 	godotenv.Load()
 
-	apiGateway := os.Getenv("API_GATEWAY")
-	wordFilterService := os.Getenv("WORD_FILTER_SERVICE_URL")
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
 
 	return cors.New(cors.Config{
-		AllowOrigins:     []string{apiGateway, wordFilterService},
+		AllowOrigins:     strings.Split(allowedOrigins, ","), // Convert CSV to slice
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},

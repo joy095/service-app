@@ -32,3 +32,6 @@
 {"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:25:20+05:30"}
 {"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:25:20+05:30"}
 {"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:25:20+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-30T19:53:59+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-30T19:53:59+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-30T19:53:59+05:30"}

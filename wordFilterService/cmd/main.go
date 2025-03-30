@@ -8,6 +8,7 @@ import (
 
 	"github.com/joy095/word-filter/badwords"
 	"github.com/joy095/word-filter/logger"
+	middleware "github.com/joy095/word-filter/middlewares/cors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,6 +23,8 @@ func init() {
 func main() {
 	// Set up Gin router
 	router := gin.Default()
+
+	router.Use(middleware.CorsMiddleware())
 
 	// Step 1: Load bad words from a text file
 	success, err := badwords.LoadBadWords("badwords/en.txt")

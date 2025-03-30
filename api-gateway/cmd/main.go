@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/joy095/api-gateway/logger"
+	middleware "github.com/joy095/api-gateway/middlewares/cors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -23,6 +24,9 @@ func main() {
 	port := os.Getenv("PORT")
 
 	router := gin.Default()
+
+	router.Use(middleware.CorsMiddleware())
+
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "ok",

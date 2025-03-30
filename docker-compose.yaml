@@ -40,12 +40,3 @@ services:
       - imageCheck/.env
     ports:
       - "8083:8083"
-
-  nginx:
-    build:
-      context: .
-      dockerfile: nginx/Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - api-gateway

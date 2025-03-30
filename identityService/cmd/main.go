@@ -8,6 +8,7 @@ import (
 
 	"github.com/joy095/identity/config/db"
 	"github.com/joy095/identity/logger"
+	middleware "github.com/joy095/identity/middlewares/cors"
 	logger_middleware "github.com/joy095/identity/middlewares/logger"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,8 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	r.Use(middleware.CorsMiddleware())
 
 	// Apply Logger Middleware
 	r.Use(logger_middleware.GinLogger())
