@@ -62,6 +62,11 @@ func (uc *UserController) Register(c *gin.Context) {
 	}
 
 	wordFilterService := os.Getenv("WORD_FILTER_SERVICE_URL")
+	if wordFilterService == "" {
+		logger.ErrorLogger.Error("WORD_FILTER_SERVICE_URL environment variable is not set")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Word filter service configuration is missing"})
+		return
+	}
 
 	response, err := http.Post(
 		wordFilterService+"/check",
@@ -71,7 +76,7 @@ func (uc *UserController) Register(c *gin.Context) {
 	logger.InfoLogger.Info("Word Filter Service Called")
 
 	if err != nil {
-		logger.ErrorLogger.Error(err, "Failed to validate username")
+		logger.ErrorLogger.Error("errors", err, "Failed to validate username")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate username"})
 		return
 	}
@@ -92,7 +97,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	user, accessToken, refreshToken, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
+	user, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
 	if err != nil {
 		logger.ErrorLogger.Error(err, "Failed to create user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
@@ -103,21 +108,16 @@ func (uc *UserController) Register(c *gin.Context) {
 	mail.SendOTP(req.Email, otp)
 
 	c.JSON(http.StatusCreated, gin.H{
-
+		"message": "User registered successfully",
 		"user": gin.H{
 			"id":       user.ID,
 			"username": user.Username,
 			"email":    user.Email,
 			"otp":      otp,
 		},
-		"tokens": gin.H{
-			"access_token":  accessToken,
-			"refresh_token": refreshToken,
-		},
 	})
 
 	logger.InfoLogger.Info("User registered successfully")
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 // Login handles user login

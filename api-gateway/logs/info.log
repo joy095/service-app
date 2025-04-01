@@ -1,37 +1,6 @@
-{"api-service":"identity-service","level":"info","message":"Starting HTTP server on %s...","timestamp":"2025-03-21T12:38:08+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:02:55+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:02:55+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:02:55+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:07:24+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:07:24+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:07:24+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:10:42+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:10:42+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:10:42+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:12:08+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:12:08+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:12:08+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:13:37+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:13:37+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:13:37+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:14:10+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:14:10+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:14:10+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:17:21+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:17:21+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:17:21+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:17:30+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:17:30+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:17:30+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:18:05+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:18:05+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:18:05+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:23:49+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:23:49+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:23:49+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-21T16:25:20+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-21T16:25:20+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-21T16:25:20+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-30T19:53:59+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-30T19:53:59+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-30T19:53:59+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-03-31T10:51:13+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-03-31T10:51:13+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-03-31T10:51:13+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-01T12:09:44+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-01T12:09:44+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-01T12:09:44+05:30"}

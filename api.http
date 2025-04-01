@@ -10,9 +10,19 @@ POST http://localhost:8080/v1/auth/register
 Content-Type: application/json
 
 {
-    "username": "hi",
+    "username": "test",
     "email": "sourva55@gmail.com",
     "password": "1234@Joy"
+}
+
+
+###
+POST http://localhost:8080/v1/auth/verify-otp
+Content-Type: application/json
+
+{
+    "email": "sourva55@gmail.com",
+    "otp": "282092"
 }
 
 ###
@@ -82,3 +92,7 @@ Content-Type: application/json
     "email": "sourva55@gmail.com",
     "otp": "342279"
 }
+
+
+###
+get http://localhost:8082/health

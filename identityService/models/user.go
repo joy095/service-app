@@ -12,9 +12,12 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/joy095/identity/config/db"
 	"github.com/joy095/identity/logger"
+
 	"github.com/joy095/identity/utils"
 
 	"golang.org/x/crypto/argon2"
@@ -58,6 +61,26 @@ func generateSalt(size int) ([]byte, error) {
 func GenerateRefreshToken(userID uuid.UUID, duration time.Duration) (string, error) {
 	logger.InfoLogger.Info("GenerateRefreshToken called on models")
 
+	var user User
+	query := `SELECT id, is_verified_email FROM users WHERE id = $1`
+	var isVerifiedEmail bool
+	err := db.DB.QueryRow(context.Background(), query, userID).Scan(
+		&user.ID, &isVerifiedEmail,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.ErrorLogger.Error("error", "Invalid or expired refresh token")
+			return "", fmt.Errorf("invalid or expired refresh token")
+		}
+		logger.ErrorLogger.Error("error", "Database error")
+		return "", fmt.Errorf("database error: %v", err)
+	}
+
+	if !isVerifiedEmail {
+		logger.ErrorLogger.Error("error", "Email not verified")
+		return "", fmt.Errorf("email not verified")
+	}
 	now := time.Now()
 
 	// Use MapClaims for maximum compatibility
@@ -80,7 +103,6 @@ func GenerateRefreshToken(userID uuid.UUID, duration time.Duration) (string, err
 	// Sign the token with the secret key
 	tokenString, err := token.SignedString(jwtRefreshSecret)
 	if err != nil {
-
 		logger.ErrorLogger.Errorf("failed to sign token: %v", err)
 		return "", fmt.Errorf("failed to sign token: %v", err)
 	}
@@ -212,34 +234,24 @@ func ValidateAccessToken(tokenString string) (*jwt.Token, jwt.MapClaims, error) 
 }
 
 // CreateUser registers a new user and returns JWT & refresh token
-func CreateUser(db *pgxpool.Pool, username, email, password string) (*User, string, string, error) {
+func CreateUser(db *pgxpool.Pool, username, email, password string) (*User, error) {
 	logger.InfoLogger.Info("CreateUser called on models")
 
 	passwordHash, err := HashPassword(password)
 	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	userID, err := GenerateUUIDv7()
 	if err != nil {
-		return nil, "", "", fmt.Errorf("failed to generate UUIDv7: %v", err)
+		return nil, fmt.Errorf("failed to generate UUIDv7: %v", err)
 	}
 
-	refreshToken, err := GenerateRefreshToken(userID, time.Hour*24*7) // Stronger Refresh Token for 7 days
+	query := `INSERT INTO users (id, username, email, password_hash) 
+              VALUES ($1, $2, $3, $4) RETURNING id`
+	_, err = db.Exec(context.Background(), query, userID, username, email, passwordHash)
 	if err != nil {
-		return nil, "", "", err
-	}
-
-	accessToken, err := GenerateAccessToken(userID, time.Minute*15)
-	if err != nil {
-		return nil, "", "", err
-	}
-
-	query := `INSERT INTO users (id, username, email, password_hash, refresh_token) 
-              VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	_, err = db.Exec(context.Background(), query, userID, username, email, passwordHash, refreshToken)
-	if err != nil {
-		return nil, "", "", err
+		return nil, err
 	}
 
 	user := &User{
@@ -247,11 +259,9 @@ func CreateUser(db *pgxpool.Pool, username, email, password string) (*User, stri
 		Username:     username,
 		Email:        email,
 		PasswordHash: passwordHash,
-		RefreshToken: &refreshToken,
 	}
 
-	return user, accessToken, refreshToken, nil
-
+	return user, nil
 }
 
 // LoginUser authenticates a user and generates JWT + Refresh Token
