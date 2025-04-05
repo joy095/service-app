@@ -1,0 +1,7 @@
+api-gateway/.env
+
+identityService/.env
+
+imageCheck/.env
+
+wordFilterService/.env

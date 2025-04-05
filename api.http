@@ -6,11 +6,14 @@ get http://localhost:8080/health
 get http://localhost:8080/v1/auth/health
 
 ###
+get http://localhost:8081/health
+
+###
 POST http://localhost:8080/v1/auth/register
 Content-Type: application/json
 
 {
-    "username": "test",
+    "username": "test2",
     "email": "sourva55@gmail.com",
     "password": "1234@Joy"
 }
@@ -30,7 +33,7 @@ POST http://localhost:8081/register
 Content-Type: application/json
 
 {
-    "username": "hello2",
+    "username": "hello3",
     "email": "sourva55@gmail.com",
     "password": "1234@Joy"
 }

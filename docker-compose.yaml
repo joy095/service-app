@@ -13,6 +13,8 @@ services:
       - identity-service
       - image-service
       - word-service
+    networks:
+      - app-network
 
   identity-service:
     build:
@@ -22,6 +24,8 @@ services:
       - identityService/.env
     ports:
       - "8081:8081"
+    networks:
+      - app-network
 
   word-service:
     build:
@@ -31,6 +35,8 @@ services:
       - wordFilterService/.env
     ports:
       - "8082:8082"
+    networks:
+      - app-network
 
   image-service:
     build:
@@ -40,3 +46,8 @@ services:
       - imageCheck/.env
     ports:
       - "8083:8083"
+    networks:
+      - app-network
+
+networks:
+  app-network:
