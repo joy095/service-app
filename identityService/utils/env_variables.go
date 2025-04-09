@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	godotenv.Load()
+	godotenv.Load(".env.local")
 }
 
 func GetJWTSecret() []byte {

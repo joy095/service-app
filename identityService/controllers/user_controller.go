@@ -22,7 +22,7 @@ import (
 )
 
 func init() {
-	godotenv.Load()
+	godotenv.Load(".env.local")
 }
 
 // UserController handles user-related requests
@@ -97,7 +97,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
+	user, accessToken, refreshToken, err := models.CreateUser(db.DB, req.Username, req.Email, req.Password)
 	if err != nil {
 		logger.ErrorLogger.Error(err, "Failed to create user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
@@ -115,6 +115,10 @@ func (uc *UserController) Register(c *gin.Context) {
 			"email":    user.Email,
 			"otp":      otp,
 		},
+		"tokens": gin.H{
+			"access_token":  accessToken,
+			"refresh_token": refreshToken,
+		},
 	})
 
 	logger.InfoLogger.Info("User registered successfully")
@@ -130,14 +134,14 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.ErrorLogger.Error(err.Error())
+		logger.ErrorLogger.Error("Invalid login payload: " + err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, accessToken, refreshToken, err := models.LoginUser(db.DB, req.Username, req.Password)
 	if err != nil {
-		logger.ErrorLogger.Error("Invalid credentials:", err.Error())
+		logger.ErrorLogger.Error("Invalid credentials: " + err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
@@ -154,8 +158,7 @@ func (uc *UserController) Login(c *gin.Context) {
 		},
 	})
 
-	logger.InfoLogger.Info("User logged in successfully")
-	c.JSON(http.StatusCreated, gin.H{"message": "User logged in successfully"})
+	logger.InfoLogger.Infof("User %s logged in successfully", user.Username)
 }
 
 func (uc *UserController) RefreshToken(c *gin.Context) {

@@ -17,7 +17,7 @@ import (
 func init() {
 	logger.InitLoggers()
 
-	godotenv.Load()
+	godotenv.Load(".env.local")
 }
 
 func main() {
@@ -27,12 +27,13 @@ func main() {
 	router.Use(middleware.CorsMiddleware())
 
 	// Step 1: Load bad words from a text file
-	success, err := badwords.LoadBadWords("badwords/en.txt")
-	if !success {
-		logger.ErrorLogger.Error("Failed to load bad words:", err)
-		fmt.Println("Failed to load bad words:", err)
-		return
-	}
+	badwords.LoadBadWords("badwords/en.txt")
+	// success, err := badwords.LoadBadWords("badwords/en.txt")
+	// if !success {
+	// 	logger.ErrorLogger.Error("Failed to load bad words:", err)
+	// 	fmt.Println("Failed to load bad words:", err)
+	// 	return
+	// }
 
 	logger.InfoLogger.Info("Bad words loaded successfully!")
 

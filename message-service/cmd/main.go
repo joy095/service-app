@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joy095/message-service/db"
 	"github.com/joy095/message-service/logger"
@@ -19,13 +20,6 @@ type Message struct {
 	Message string `json:"message"`
 }
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		// Allow connections from any origin (for dev)
-		return true
-	},
-}
-
 func init() {
 	logger.InitLoggers()
 
@@ -34,16 +28,46 @@ func init() {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8085"
+	}
+
 	router := gin.Default()
 
 	router.Use(middleware.CorsMiddleware())
 
 	router.GET("/ws", serveWs)
 
-	log.Println("Server starting on :8080...")
-	if err := router.Run(":8080"); err != nil {
+	log.Println("Server starting on: " + port)
+	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Unable to start server: %v", err)
 	}
+}
+
+// var upgrader = websocket.Upgrader{
+// 	ReadBufferSize:  1024,
+// 	WriteBufferSize: 1024,
+// 	CheckOrigin: func(r *http.Request) bool {
+// 		allowed := os.Getenv("ALLOWED_ORIGINS")
+// 		origins := strings.Split(allowed, ",")
+// 		origin := r.Header.Get("Origin")
+
+// 		for _, o := range origins {
+// 			if strings.TrimSpace(o) == origin {
+// 				return true
+// 			}
+// 		}
+// 		return false
+// 	},
+// }
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // ⚠️ Accept all origins — only for dev/testing!
+	},
 }
 
 func serveWs(c *gin.Context) {

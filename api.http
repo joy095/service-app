@@ -13,7 +13,7 @@ POST http://localhost:8080/v1/auth/register
 Content-Type: application/json
 
 {
-    "username": "test2",
+    "username": "hello2",
     "email": "sourva55@gmail.com",
     "password": "1234@Joy"
 }
@@ -25,17 +25,7 @@ Content-Type: application/json
 
 {
     "email": "sourva55@gmail.com",
-    "otp": "282092"
-}
-
-###
-POST http://localhost:8081/register
-Content-Type: application/json
-
-{
-    "username": "hello3",
-    "email": "sourva55@gmail.com",
-    "password": "1234@Joy"
+    "otp": "726008"
 }
 
 ### 
@@ -43,27 +33,20 @@ POST http://localhost:8080/v1/auth/login
 Content-Type: application/json
 
 {
-    "username": "test2",
+    "username": "hello",
     "password": "1234@Joy"
 }
 
-### 
-POST http://localhost:8081/login
+
+###
+POST http://localhost:8080/v1/auth/logout
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQyMjI5OTksImlhdCI6MTc0NDIyMjA5OSwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6IjQ0YTExYjAxLWU3NmUtNDNiMi1hZjcwLTlhNmE3M2MzODcyMCIsIm5iZiI6MTc0NDIyMjA5OSwic3ViIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2IiwidXNlcl9pZCI6IjAxOTYxOWEwLWNiZTAtNzVkNS1iOWFkLTUyNWYzODEyNmY5NiJ9.R5i-7wYeZX3ew1SbbKtSau7XuFSzETrXSPe5SG3YQhA
 
 {
-    "username": "test2",
-    "password": "1234@Joy"
+    "user_id": "019619a0-cbe0-75d5-b9ad-525f38126f96"
 }
 
-### 
-POST http://localhost:8081/logout
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDIwNTAwMDQsImlhdCI6MTc0MjA0OTEwNCwiaXNzIjoiaWRlbnRpdHlfc2VydmljZSIsImp0aSI6IjMxZDYyNzI3LTY2MDYtNGY3Zi1hOTg1LTYxOWRmNTVhYmUzMSIsIm5iZiI6MTc0MjA0OTEwNCwic3ViIjoiMDE5NTk0YzUtMWM1ZS03ZDIxLTllNGEtOTlkNTVhNTZjMjZhIiwidXNlcl9pZCI6IjAxOTU5NGM1LTFjNWUtN2QyMS05ZTRhLTk5ZDU1YTU2YzI2YSJ9.tzwn145xqjLTMPJxeVSUzRd15iVxQoNWrRVP0XmXrTw
-
-{
-    "user_id": "019594c5-1c5e-7d21-9e4a-99d55a56c26a"
-}
 
 
 ###
@@ -79,7 +62,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:8081/send-otp
+POST http://localhost:8081/request-otp
 Content-Type: application/json
 
 {
@@ -93,9 +76,28 @@ Content-Type: application/json
 
 {
     "email": "sourva55@gmail.com",
-    "otp": "342279"
+    "otp": "641938"
 }
 
 
 ###
 get http://localhost:8082/health
+
+###
+post http://localhost:8082/check
+Content-Type: application/json
+
+{
+    "text": "hello0"
+}
+
+
+###
+GET http://localhost:8085/ws
+Content-Type: application/json
+
+{
+    "username": "test",
+    "message": "hello"
+}
+

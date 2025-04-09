@@ -17,7 +17,7 @@ import (
 func init() {
 	logger.InitLoggers()
 
-	godotenv.Load()
+	godotenv.Load(".env.local")
 }
 
 func main() {

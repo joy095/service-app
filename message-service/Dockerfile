@@ -2,10 +2,10 @@ FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-COPY ./api-gateway/go.mod ./api-gateway/go.sum ./
+COPY ./message-service/go.mod ./message-service/go.sum ./
 RUN go mod download
 
-COPY ./api-gateway .
+COPY ./message-service .
 
 RUN go build -o main ./cmd/main.go
 
@@ -16,6 +16,6 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 
-EXPOSE 8080
+EXPOSE 8085
 
 CMD ["./main"]

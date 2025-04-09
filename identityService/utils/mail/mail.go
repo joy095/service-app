@@ -25,16 +25,16 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-var smtpClient *mail.SMTPClient
+// var smtpClient *mail.SMTPClient
 var redisClient *redis.Client
 var ctx = context.Background()
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: Failed to load .env file")
-	}
+	godotenv.Load(".env.local")
+	// if err != nil {
+	// 	log.Println("Warning: Failed to load .env file")
+	// }
 
 	// Initialize Redis
 	redisClient = redis.NewClient(&redis.Options{
@@ -143,17 +143,6 @@ func SendOTP(emailAddress, otp string) error {
 	logger.InfoLogger.Info("Sending OTP email to: ", user.Email)
 
 	return email.Send(smtpClient)
-}
-
-// Generate JWT token
-func generateJWT(email string) (string, error) {
-	claims := jwt.MapClaims{
-		"email": email,
-		"exp":   time.Now().Add(10 * time.Minute).Unix(), // Token expires in 10 minutes
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
 }
 
 // Request OTP API

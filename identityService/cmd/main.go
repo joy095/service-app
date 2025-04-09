@@ -19,7 +19,7 @@ func init() {
 	// Initialize loggers before using
 	logger.InitLoggers()
 
-	godotenv.Load()
+	godotenv.Load(".env.local")
 	db.Connect()
 }
 

@@ -1,11 +1,5 @@
-/tmp
-
-.evn
+.env.example
 
 /logs
 
-.env.example
-
-.air.toml
-
-.env
+.gitignore

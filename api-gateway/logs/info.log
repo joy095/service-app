@@ -4,3 +4,18 @@
 {"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-01T12:09:44+05:30"}
 {"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-01T12:09:44+05:30"}
 {"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-01T12:09:44+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-08T20:15:44+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-08T20:15:44+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-08T20:15:44+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-08T20:28:40+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-08T20:28:40+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-08T20:28:40+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-08T15:34:44Z"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-08T15:34:44Z"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-08T15:34:44Z"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-09T13:36:33+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-09T13:36:33+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-09T13:36:33+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-09T13:47:18+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-09T13:47:18+05:30"}
+{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-09T13:47:18+05:30"}

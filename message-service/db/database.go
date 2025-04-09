@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -16,10 +15,10 @@ import (
 var DB *pgxpool.Pool
 
 func Connect() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load(".env.local")
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	dsn := os.Getenv("DATABASE_URL")
 

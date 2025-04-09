@@ -12,7 +12,7 @@ import (
 
 // CorsMiddleware sets up CORS settings
 func CorsMiddleware() gin.HandlerFunc {
-	godotenv.Load()
+	godotenv.Load(".env.local")
 
 	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
 
