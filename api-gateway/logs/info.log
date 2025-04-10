@@ -1,3 +1,0 @@
-{"api-gateway":"identity-service","level":"info","message":"Identity Service Called","timestamp":"2025-04-10T00:04:27+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Image Service Called","timestamp":"2025-04-10T00:04:27+05:30"}
-{"api-gateway":"identity-service","level":"info","message":"Starting HTTP server on %s...8080","timestamp":"2025-04-10T00:04:27+05:30"}
