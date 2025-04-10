@@ -7,10 +7,10 @@ RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh 
 
 WORKDIR /app
 
-COPY ./wordFilterService/go.mod ./wordFilterService/go.sum ./
+COPY ./word_filter_service/go.mod ./word_filter_service/go.sum ./
 RUN go mod download
 
-COPY ./wordFilterService .
+COPY ./word_filter_service .
 
 EXPOSE 8082
 

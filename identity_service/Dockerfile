@@ -1,13 +1,13 @@
 FROM golang:1.24-alpine AS builder
 
-WORKDIR /app/identityService
+WORKDIR /app/identity_service
 
 # Copy go.mod and go.sum to cache dependencies
-COPY ./identityService/go.mod ./identityService/go.sum ./
+COPY ./identity_service/go.mod ./identity_service/go.sum ./
 RUN go mod download
 
 # Copy the rest of the code
-COPY /identityService .
+COPY /identity_service .
 
 # Build the Go application
 RUN go build -o main cmd/main.go

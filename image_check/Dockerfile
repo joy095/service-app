@@ -1,13 +1,13 @@
 FROM python:3.10-slim
 
-WORKDIR /app/imageCheck
+WORKDIR /app/image_check
 
 # Install dependencies
-COPY ./imageCheck/requirements.txt .
+COPY ./image_check/requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Copy the FastAPI app
-COPY ./imageCheck/app .
+COPY ./image_check/app .
 
 # Expose the FastAPI port
 EXPOSE 8083

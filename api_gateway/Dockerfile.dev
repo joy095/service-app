@@ -7,10 +7,10 @@ RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh 
 
 WORKDIR /app
 
-COPY ./api-gateway/go.mod ./api-gateway/go.sum ./
+COPY ./api_gateway/go.mod ./api_gateway/go.sum ./
 RUN go mod download
 
-COPY ./api-gateway .
+COPY ./api_gateway .
 
 EXPOSE 8080
 
