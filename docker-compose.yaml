@@ -4,11 +4,11 @@ services:
   api-gateway:
     build:
       context: .
-      dockerfile: api-gateway/Dockerfile
+      dockerfile: api_gateway/Dockerfile
     # volumes:
-    #   - ./api-gateway:/app
+    #   - ./api_gateway:/app
     env_file:
-      - api-gateway/.env
+      - api_gateway/.env
     ports:
       - "8080:8080"
     depends_on:
@@ -21,7 +21,7 @@ services:
   identity-service:
     build:
       context: .
-      dockerfile: identityService/Dockerfile
+      dockerfile: identity_service/Dockerfile
     # volumes:
     #   - ./identityService:/app
     env_file:
@@ -34,11 +34,11 @@ services:
   word-service:
     build:
       context: .
-      dockerfile: wordFilterService/Dockerfile
+      dockerfile: word_filter_service/Dockerfile
     # volumes:
-    #   - ./wordFilterService:/app
+    #   - ./word_filter_service:/app
     env_file:
-      - wordFilterService/.env
+      - word_filter_service/.env
     ports:
       - "8082:8082"
     networks:
@@ -47,9 +47,9 @@ services:
   image-service:
     build:
       context: .
-      dockerfile: imageCheck/Dockerfile
+      dockerfile: image_check/Dockerfile
     env_file:
-      - imageCheck/.env
+      - image_check/.env
     ports:
       - "8083:8083"
     networks:

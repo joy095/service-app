@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joy095/identity/config/db"
@@ -164,20 +165,20 @@ func (uc *UserController) Login(c *gin.Context) {
 func (uc *UserController) RefreshToken(c *gin.Context) {
 	logger.InfoLogger.Info("RefreshToken token function called")
 
-	var req struct {
-		RefreshToken string `json:"refresh_token" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.ErrorLogger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	refreshToken := c.GetHeader("Refresh_token")
+	if refreshToken == "" {
+		logger.ErrorLogger.Error("No refresh token provided in header")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No refresh token provided"})
 		return
 	}
+
+	// Remove 'Bearer ' prefix if present
+	refreshToken = strings.TrimPrefix(refreshToken, "Bearer ")
 
 	// Query the database to find the user with this refresh token
 	var user models.User
 	query := `SELECT id, username, email, refresh_token FROM users WHERE refresh_token = $1`
-	err := db.DB.QueryRow(context.Background(), query, req.RefreshToken).Scan(
+	err := db.DB.QueryRow(context.Background(), query, refreshToken).Scan(
 		&user.ID, &user.Username, &user.Email, &user.RefreshToken,
 	)
 
@@ -255,7 +256,7 @@ func (uc *UserController) Logout(c *gin.Context) {
 	}
 
 	// Get the user ID from the context
-	userIDFromToken, exists := c.Get("userID")
+	userIDFromToken, exists := c.Get("user_id")
 	if !exists {
 		logger.ErrorLogger.Error("Unauthorized")
 
@@ -313,5 +314,4 @@ func (uc *UserController) GetUserByUsername(c *gin.Context) {
 	})
 
 	logger.InfoLogger.Info("User retrieved successfully")
-	c.JSON(http.StatusCreated, gin.H{"message": "User retrieved successfully"})
 }

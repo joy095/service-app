@@ -33,21 +33,53 @@ POST http://localhost:8080/v1/auth/login
 Content-Type: application/json
 
 {
+    "username": "hello2",
+    "password": "1234@Joy"
+}
+
+### 
+POST http://localhost:8080/v1/auth/login
+Content-Type: application/json
+
+{
     "username": "hello",
     "password": "1234@Joy"
 }
 
 
 ###
+GET http://localhost:8080/v1/auth/user/hello
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzOTQ5MTYsImlhdCI6MTc0NDM5NDAxNiwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6ImJhYjI0NjA5LTYyM2MtNDBhNS04ODJmLWM3NTQyYjdlN2ZhMyIsIm5iZiI6MTc0NDM5NDAxNiwic3ViIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2IiwidXNlcl9pZCI6IjAxOTYxOWEwLWNiZTAtNzVkNS1iOWFkLTUyNWYzODEyNmY5NiJ9.rUJiULa4s4h0Z_g8UfkE4yyfuO2YFweUfQ3zlJWjBPA
+
+
+###
 POST http://localhost:8080/v1/auth/logout
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQyMjI5OTksImlhdCI6MTc0NDIyMjA5OSwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6IjQ0YTExYjAxLWU3NmUtNDNiMi1hZjcwLTlhNmE3M2MzODcyMCIsIm5iZiI6MTc0NDIyMjA5OSwic3ViIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2IiwidXNlcl9pZCI6IjAxOTYxOWEwLWNiZTAtNzVkNS1iOWFkLTUyNWYzODEyNmY5NiJ9.R5i-7wYeZX3ew1SbbKtSau7XuFSzETrXSPe5SG3YQhA
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQzOTQ5MTYsImlhdCI6MTc0NDM5NDAxNiwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6ImJhYjI0NjA5LTYyM2MtNDBhNS04ODJmLWM3NTQyYjdlN2ZhMyIsIm5iZiI6MTc0NDM5NDAxNiwic3ViIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2IiwidXNlcl9pZCI6IjAxOTYxOWEwLWNiZTAtNzVkNS1iOWFkLTUyNWYzODEyNmY5NiJ9.rUJiULa4s4h0Z_g8UfkE4yyfuO2YFweUfQ3zlJWjBPA
 
 {
     "user_id": "019619a0-cbe0-75d5-b9ad-525f38126f96"
 }
 
 
+###
+POST http://localhost:8080/v1/auth/relation/accept
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ0MzU5ODgsImlhdCI6MTc0NDQzNTA4OCwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6IjMyZmEwMTdhLWEzNjQtNDE2MS1hMjZjLWUzY2M3ODE0ZTkyMCIsIm5iZiI6MTc0NDQzNTA4OCwic3ViIjoiMDE5NjFiYzMtMTljMy03MjE3LWFlZmQtMDVlNDQxOWEzYzVhIiwidXNlcl9pZCI6IjAxOTYxYmMzLTE5YzMtNzIxNy1hZWZkLTA1ZTQ0MTlhM2M1YSJ9.IYsv4TT8ILbFhquk9sSsaHs9pyC_a7DVhyRQ4EuOxic
+
+{
+    "requester_id": "01961bc3-19c3-7217-aefd-05e4419a3c5a"
+}
+
+###
+POST http://localhost:8080/v1/auth/relation/request
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ0MzUwODYsImlhdCI6MTc0NDQzNDE4NiwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6IjE3N2Q3NDlkLWZiN2QtNGFhOS1iMTY0LTQ0YWYzMjY3NGFmNCIsIm5iZiI6MTc0NDQzNDE4Niwic3ViIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2IiwidXNlcl9pZCI6IjAxOTYxOWEwLWNiZTAtNzVkNS1iOWFkLTUyNWYzODEyNmY5NiJ9.FyjQFxhkQ2DeXZIZrXCdWz0JsVx1PjlUf4SUJAfrJF4
+
+{
+    "addressee_id": "01961bc3-19c3-7217-aefd-05e4419a3c5a"
+}
 
 ###
 GET http://localhost:8081/user/test2
@@ -57,9 +89,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDI2NTM5M
 POST http://localhost:8081/refresh-token
 Content-Type: application/json
 
-{
-"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDI2NTQ2NTQsImlhdCI6MTc0MjA0OTg1NCwiaXNzIjoiaWRlbnRpdHlfc2VydmljZSIsImp0aSI6ImZmNmZmNDAzLTlhMzktNDEyMC1hNTFiLWU2ZmQwNTc1Y2IzYiIsIm5iZiI6MTc0MjA0OTg1NCwic3ViIjoiMDE5NTk0YzUtMWM1ZS03ZDIxLTllNGEtOTlkNTVhNTZjMjZhIiwidHlwZSI6InJlZnJlc2giLCJ1c2VyX2lkIjoiMDE5NTk0YzUtMWM1ZS03ZDIxLTllNGEtOTlkNTVhNTZjMjZhIn0.ogLkuD1a3-rwqofnDRA5AhCovhvrfhlWJ8tFHq1mnkI"
-}
+
+###
+POST http://localhost:8080/v1/auth/refresh-token
+Content-Type: application/json
+Refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDUwMDE3OTYsImlhdCI6MTc0NDM5Njk5NiwiaXNzIjoiaWRlbnRpdHlfc2VydmljZSIsImp0aSI6ImMyMDNmMTk0LTU5MDYtNGIwNi05MDJkLThhODEzM2Q5ZDM0NiIsIm5iZiI6MTc0NDM5Njk5Niwic3ViIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2IiwidHlwZSI6InJlZnJlc2giLCJ1c2VyX2lkIjoiMDE5NjE5YTAtY2JlMC03NWQ1LWI5YWQtNTI1ZjM4MTI2Zjk2In0.LtRZlB_b-COsUUo1HqWWpGxkDCk6waoIfi7R89OC2ak
 
 ###
 POST http://localhost:8081/request-otp

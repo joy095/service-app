@@ -84,7 +84,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		logger.InfoLogger.Infof("Authenticated user ID: %s", userID)
 		log.Printf("Authenticated user ID: %s", userID)
-		c.Set("userID", userID)
+		c.Set("user_id", userID)
 		c.Next()
 	}
 }
