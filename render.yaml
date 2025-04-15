@@ -2,10 +2,10 @@ services:
   - type: web
     name: api-gateway
     env: docker
-    repo: https://github.com/joy095/go-backend
+    repo: https://github.com/joy095/service-app
     dockerfilePath: api_gateway/Dockerfile
     envVars:
-      - fromDotEnv: true
+      - fromGroup: api-gateway-env
     plan: free
     autoDeploy: true
     buildFilter:
@@ -15,10 +15,10 @@ services:
   - type: web
     name: identity-service
     env: docker
-    repo: https://github.com/joy095/go-backend
+    repo: https://github.com/joy095/service-app
     dockerfilePath: identity_service/Dockerfile
     envVars:
-      - fromDotEnv: true
+      - fromGroup: identity-service-env
     plan: free
     autoDeploy: true
     buildFilter:
@@ -28,10 +28,10 @@ services:
   - type: web
     name: word-service
     env: docker
-    repo: https://github.com/joy095/go-backend
+    repo: https://github.com/joy095/service-app
     dockerfilePath: word_filter_service/Dockerfile
     envVars:
-      - fromDotEnv: true
+      - fromGroup: word-service-env
     plan: free
     autoDeploy: true
     buildFilter:
@@ -41,10 +41,10 @@ services:
   - type: web
     name: image-service
     env: docker
-    repo: https://github.com/joy095/go-backend
+    repo: https://github.com/joy095/service-app
     dockerfilePath: image_check/Dockerfile
     envVars:
-      - fromDotEnv: true
+      - fromGroup: image-service-env
     plan: free
     autoDeploy: true
     buildFilter:
