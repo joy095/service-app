@@ -6,6 +6,12 @@ get http://localhost:8080/health
 get http://localhost:8080/v1/auth/health
 
 ###
+get http://api-gateway-gdk9.onrender.com/health
+
+###
+get http://api-gateway-gdk9.onrender.com/v1/image/health
+
+###
 get http://localhost:8081/health
 
 ###

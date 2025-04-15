@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { apiFetch } from "$lib/api";
+
 	let username = '';
 	let password = '';
 
@@ -13,13 +15,26 @@
 
 	$: isLoginFormValid = username && password && !errors.username && !errors.password;
 
+	let generalError = '';
+
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
 		hasSubmitted = true;
+		generalError = ''; // Clear previous error
+
 
 		if (Object.values(errors).some((e) => e)) return;
 
-		const res = await fetch('api/v1/auth/login', {
+
+		const API = import.meta.env.VITE_API_URL;
+		if (!API) {
+			generalError = 'API URL is not defined';
+			return;
+		}
+
+		// const res = await apiFetch(`api/v1/auth/register`, {
+		const res = await apiFetch(`${API}/v1/auth/login`, {
+
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ username, password })
