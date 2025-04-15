@@ -9,7 +9,7 @@ get http://localhost:8080/v1/auth/health
 get http://localhost:8081/health
 
 ###
-POST http://localhost:8080/v1/auth/register
+POST https://api-gateway-gdk9.onrender.com/v1/auth/register
 Content-Type: application/json
 
 {

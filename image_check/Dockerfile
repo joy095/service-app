@@ -10,7 +10,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY ./image_check/app .
 
 # Expose the FastAPI port
-EXPOSE 8083
+EXPOSE 8084
 
 # Run the FastAPI app using uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8083"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8084"]
