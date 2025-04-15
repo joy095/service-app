@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: api-gateway
+    env: docker
+    repo: https://github.com/joy095/go-backend
+    dockerfilePath: api_gateway/Dockerfile
+    envVars:
+      - fromDotEnv: true
+    plan: free
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - api_gateway/**
+
+  - type: web
+    name: identity-service
+    env: docker
+    repo: https://github.com/joy095/go-backend
+    dockerfilePath: identity_service/Dockerfile
+    envVars:
+      - fromDotEnv: true
+    plan: free
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - identity_service/**
+
+  - type: web
+    name: word-service
+    env: docker
+    repo: https://github.com/joy095/go-backend
+    dockerfilePath: word_filter_service/Dockerfile
+    envVars:
+      - fromDotEnv: true
+    plan: free
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - word_filter_service/**
+
+  - type: web
+    name: image-service
+    env: docker
+    repo: https://github.com/joy095/go-backend
+    dockerfilePath: image_check/Dockerfile
+    envVars:
+      - fromDotEnv: true
+    plan: free
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - image_check/**

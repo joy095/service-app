@@ -91,6 +91,8 @@ func storeOTP(email, otp string) error {
 	return redisClient.Set(context.Background(), "otp:"+email, hashedOTP, 10*time.Minute).Err()
 }
 
+// continue OTP hash comparison...
+
 func SendOTP(emailAddress, otp string) error {
 	logger.InfoLogger.Info("SendOTP called on mail")
 

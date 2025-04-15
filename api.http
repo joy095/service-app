@@ -13,7 +13,7 @@ POST http://localhost:8080/v1/auth/register
 Content-Type: application/json
 
 {
-    "username": "hello2",
+    "username": "fuck",
     "email": "sourva55@gmail.com",
     "password": "1234@Joy"
 }

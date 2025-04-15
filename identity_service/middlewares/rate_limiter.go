@@ -1,8 +1,11 @@
-// internal/middleware/rate_limiter.go
 package middleware
 
 import (
+	"fmt"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -11,19 +14,12 @@ import (
 	redisstore "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
-// NewRateLimiter returns a middleware with a specific rate like "5-M" or "10-S"
-func NewRateLimiter(rateString string) gin.HandlerFunc {
-	rate, err := limiter.NewRateFromFormatted(rateString)
-	if err != nil {
-		panic(err)
-	}
-
+func createRedisStore() limiter.Store {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_HOST"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		DB:       0,
 	})
-
 	store, err := redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
 		Prefix:   "rate_limiter",
 		MaxRetry: 3,
@@ -31,7 +27,68 @@ func NewRateLimiter(rateString string) gin.HandlerFunc {
 	if err != nil {
 		panic(err)
 	}
+	return store
+}
 
+// ParseCustomRate allows formats like "10-2m", "30-20m", "5-1h", etc.
+func ParseCustomRate(rateStr string) (limiter.Rate, error) {
+	parts := strings.Split(rateStr, "-")
+	if len(parts) != 2 {
+		return limiter.Rate{}, fmt.Errorf("invalid rate format: %s", rateStr)
+	}
+	limit, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return limiter.Rate{}, fmt.Errorf("invalid limit: %s", parts[0])
+	}
+
+	durationStr := parts[1]
+	var period time.Duration
+
+	if strings.HasSuffix(durationStr, "m") {
+		minutes, err := strconv.Atoi(strings.TrimSuffix(durationStr, "m"))
+		if err != nil {
+			return limiter.Rate{}, err
+		}
+		period = time.Duration(minutes) * time.Minute
+	} else if strings.HasSuffix(durationStr, "h") {
+		hours, err := strconv.Atoi(strings.TrimSuffix(durationStr, "h"))
+		if err != nil {
+			return limiter.Rate{}, err
+		}
+		period = time.Duration(hours) * time.Hour
+	} else {
+		return limiter.Rate{}, fmt.Errorf("unsupported period: %s", durationStr)
+	}
+
+	return limiter.Rate{
+		Period: period,
+		Limit:  int64(limit),
+	}, nil
+}
+
+// NewRateLimiter creates middleware with custom periods like "10-2m"
+func NewRateLimiter(rateStr string) gin.HandlerFunc {
+	rate, err := ParseCustomRate(rateStr)
+	if err != nil {
+		panic(err)
+	}
+	store := createRedisStore()
 	limiterInstance := limiter.New(store, rate)
 	return ginmiddleware.NewMiddleware(limiterInstance)
+}
+
+// CombinedRateLimiter accepts multiple custom rate strings
+func CombinedRateLimiter(rateStrings ...string) gin.HandlerFunc {
+	middlewares := make([]gin.HandlerFunc, len(rateStrings))
+	for i, rateStr := range rateStrings {
+		middlewares[i] = NewRateLimiter(rateStr)
+	}
+	return func(c *gin.Context) {
+		for _, mw := range middlewares {
+			mw(c)
+			if c.IsAborted() {
+				return
+			}
+		}
+	}
 }

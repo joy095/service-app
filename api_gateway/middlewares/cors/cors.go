@@ -8,19 +8,33 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/joy095/api-gateway/logger"
 )
 
 // CorsMiddleware sets up CORS settings
 func CorsMiddleware() gin.HandlerFunc {
-	godotenv.Load(".env.local")
+	if err := godotenv.Load(".env.local"); err != nil {
+		logger.ErrorLogger.Error("Error loading .env.local file for CORS configuration")
+	}
 
 	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		logger.InfoLogger.Info("ALLOWED_ORIGINS not set, defaulting to allow all origins (*)")
+		allowedOrigins = "*"
+	}
+
+	origins := strings.Split(allowedOrigins, ",")
+	for i := range origins {
+		origins[i] = strings.TrimSpace(origins[i])
+	}
+
+	logger.InfoLogger.Info("CORS configured with origins: " + strings.Join(origins, ", "))
 
 	return cors.New(cors.Config{
-		AllowOrigins:     strings.Split(allowedOrigins, ","), // Convert CSV to slice
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowOrigins:     origins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Refresh_token", "Accept", "Cache-Control", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	})
