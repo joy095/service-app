@@ -8,19 +8,17 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joy095/api-gateway/config"
 	"github.com/joy095/api-gateway/logger"
 	middleware "github.com/joy095/api-gateway/middlewares/cors"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func init() {
 	logger.InitLoggers()
 
-	if err := godotenv.Load(".env.local"); err != nil {
-		logger.ErrorLogger.Error("Error loading .env.local file")
-	}
+	config.LoadEnv()
 }
 
 func main() {

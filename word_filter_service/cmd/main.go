@@ -7,16 +7,16 @@ import (
 	"os"
 
 	"github.com/joy095/word-filter/badwords"
+	"github.com/joy095/word-filter/config"
 	"github.com/joy095/word-filter/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func init() {
 	logger.InitLoggers()
 
-	godotenv.Load(".env.local")
+	config.LoadEnv()
 }
 
 func main() {

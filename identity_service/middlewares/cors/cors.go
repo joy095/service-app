@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joy095/api-gateway/config"
-	"github.com/joy095/api-gateway/logger"
+	"github.com/joy095/identity/config"
+	"github.com/joy095/identity/logger"
 )
 
 // CorsMiddleware sets up CORS settings

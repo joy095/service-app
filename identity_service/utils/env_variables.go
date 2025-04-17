@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
+	"github.com/joy095/identity/config"
 )
 
 func init() {
-	godotenv.Load(".env.local")
+	config.LoadEnv()
 }
 
 func GetJWTSecret() []byte {

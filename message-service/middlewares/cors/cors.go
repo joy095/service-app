@@ -7,12 +7,12 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	"github.com/joy095/message-service/config"
 )
 
 // CorsMiddleware sets up CORS settings
 func CorsMiddleware() gin.HandlerFunc {
-	godotenv.Load(".env.local")
+	config.LoadEnv()
 
 	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
 

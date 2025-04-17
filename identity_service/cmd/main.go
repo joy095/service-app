@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/joy095/identity/config"
 	"github.com/joy095/identity/routes"
 
 	"github.com/joy095/identity/config/db"
@@ -11,14 +12,13 @@ import (
 	logger_middleware "github.com/joy095/identity/middlewares/logger"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func init() {
 	// Initialize loggers before using
 	logger.InitLoggers()
 
-	godotenv.Load(".env.local")
+	config.LoadEnv()
 	db.Connect()
 }
 

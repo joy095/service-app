@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joy095/identity/config"
 	"github.com/joy095/identity/config/db"
 	"github.com/joy095/identity/logger"
 	"github.com/joy095/identity/models"
@@ -19,11 +20,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
 )
 
 func init() {
-	godotenv.Load(".env.local")
+	config.LoadEnv()
 }
 
 // UserController handles user-related requests

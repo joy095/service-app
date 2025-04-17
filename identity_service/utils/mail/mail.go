@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/joy095/identity/config"
 	"github.com/joy095/identity/config/db"
 	"github.com/joy095/identity/models"
 
@@ -19,7 +20,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	mail "github.com/xhit/go-simple-mail/v2"
 	"golang.org/x/crypto/argon2"
@@ -31,10 +31,7 @@ var ctx = context.Background()
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 func init() {
-	godotenv.Load(".env.local")
-	// if err != nil {
-	// 	log.Println("Warning: Failed to load .env file")
-	// }
+	config.LoadEnv()
 
 	// Initialize Redis
 	redisClient = redis.NewClient(&redis.Options{
