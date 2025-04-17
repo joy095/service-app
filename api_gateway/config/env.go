@@ -1,4 +1,3 @@
-// internal/config/env.go
 package config
 
 import (
@@ -11,16 +10,13 @@ import (
 func LoadEnv() {
 	env := os.Getenv("GO_ENV")
 
-	var envFile string
 	if env == "development" {
-		envFile = ".env.local"
+		if err := godotenv.Load(".env.local"); err != nil {
+			log.Printf("No .env.local file found or failed to load: %v", err)
+		} else {
+			log.Println("Loaded environment variables from .env.local")
+		}
 	} else {
-		envFile = ".env"
-	}
-
-	if err := godotenv.Load(envFile); err != nil {
-		log.Printf("No %s file found or failed to load: %v", envFile, err)
-	} else {
-		log.Printf("Loaded environment variables from %s", envFile)
+		log.Println("Production mode: using system environment variables only")
 	}
 }
