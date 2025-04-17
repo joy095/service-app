@@ -20,29 +20,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/redis/go-redis/v9"
+	redisclient "github.com/joy095/identity/config/redis"
 	mail "github.com/xhit/go-simple-mail/v2"
 	"golang.org/x/crypto/argon2"
 )
 
 // var smtpClient *mail.SMTPClient
-var redisClient *redis.Client
+
 var ctx = context.Background()
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 func init() {
 	config.LoadEnv()
 
-	// Initialize Redis
-	redisClient = redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_HOST"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       0,
-		OnConnect: func(ctx context.Context, cn *redis.Conn) error {
-			log.Println("Connected to Redis")
-			return nil
-		},
-	})
 }
 
 // Create a new SMTP client connection
@@ -85,7 +75,7 @@ func hashOTP(otp string) string {
 // Store OTP hash in Redis with expiration
 func storeOTP(email, otp string) error {
 	hashedOTP := hashOTP(otp)
-	return redisClient.Set(context.Background(), "otp:"+email, hashedOTP, 10*time.Minute).Err()
+	return redisclient.GetRedisClient().Set(context.Background(), "otp:"+email, hashedOTP, 10*time.Minute).Err()
 }
 
 // continue OTP hash comparison...
@@ -223,7 +213,7 @@ func VerifyOTP(c *gin.Context) {
 	}
 
 	// Retrieve OTP hash from Redis
-	storedHash, err := redisClient.Get(ctx, "otp:"+request.Email).Result()
+	storedHash, err := redisclient.GetRedisClient().Get(ctx, "otp:"+request.Email).Result()
 	if err != nil {
 		logger.ErrorLogger.Error("OTP expired or not found")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "OTP expired or not found"})
@@ -264,7 +254,7 @@ func VerifyOTP(c *gin.Context) {
 	}
 
 	// Store refresh token in Redis
-	err = redisClient.Set(ctx, "refresh:"+request.Email, refreshToken, 168*time.Hour).Err()
+	err = redisclient.GetRedisClient().Set(ctx, "refresh:"+request.Email, refreshToken, 168*time.Hour).Err()
 	if err != nil {
 		logger.ErrorLogger.Error("Failed to store refresh token")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
@@ -272,7 +262,7 @@ func VerifyOTP(c *gin.Context) {
 	}
 
 	// Delete OTP from Redis
-	redisClient.Del(ctx, "otp:"+request.Email)
+	redisclient.GetRedisClient().Del(ctx, "otp:"+request.Email)
 
 	// Update user's email verification status and refresh token in PostgreSQL
 	_, err = db.DB.Exec(context.Background(),

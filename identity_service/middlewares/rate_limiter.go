@@ -1,32 +1,22 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
+	db "github.com/joy095/identity/config/redis"
 	"github.com/ulule/limiter/v3"
 	ginmiddleware "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	redisstore "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
+// createRedisStore creates a Redis-backed rate limiter store
 func createRedisStore() (limiter.Store, error) {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_HOST"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       0,
-	})
-
-	// Test the connection
-	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
-		return nil, fmt.Errorf("redis connection failed: %w", err)
-	}
+	rdb := db.GetRedisClient()
 
 	store, err := redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
 		Prefix:   "rate_limiter",
