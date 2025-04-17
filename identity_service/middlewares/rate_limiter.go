@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -14,20 +16,26 @@ import (
 	redisstore "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
-func createRedisStore() limiter.Store {
+func createRedisStore() (limiter.Store, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_HOST"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		DB:       0,
 	})
+
+	// Test the connection
+	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
+		return nil, fmt.Errorf("redis connection failed: %w", err)
+	}
+
 	store, err := redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
 		Prefix:   "rate_limiter",
 		MaxRetry: 3,
 	})
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to create redis store: %w", err)
 	}
-	return store
+	return store, nil
 }
 
 // ParseCustomRate allows formats like "10-2m", "30-20m", "5-1h", etc.
@@ -70,9 +78,22 @@ func ParseCustomRate(rateStr string) (limiter.Rate, error) {
 func NewRateLimiter(rateStr string) gin.HandlerFunc {
 	rate, err := ParseCustomRate(rateStr)
 	if err != nil {
-		panic(err)
+		log.Printf("Error parsing rate: %v", err)
+		// Return a fallback middleware that just passes through
+		return func(c *gin.Context) {
+			c.Next()
+		}
 	}
-	store := createRedisStore()
+
+	store, err := createRedisStore()
+	if err != nil {
+		log.Printf("Error creating Redis store: %v", err)
+		// Return a fallback middleware that just passes through
+		return func(c *gin.Context) {
+			c.Next()
+		}
+	}
+
 	limiterInstance := limiter.New(store, rate)
 	return ginmiddleware.NewMiddleware(limiterInstance)
 }
