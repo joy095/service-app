@@ -17,14 +17,13 @@ import (
 
 func init() {
 	logger.InitLoggers()
-
 	config.LoadEnv()
 }
 
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // Default port if not set
+		port = "8080"
 		logger.InfoLogger.Info("PORT not set. Using default: 8080")
 	}
 
@@ -32,9 +31,7 @@ func main() {
 	router.Use(middleware.CorsMiddleware())
 
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "ok",
-		})
+		c.JSON(http.StatusOK, gin.H{"message": "ok"})
 	})
 
 	// Identity Service
@@ -43,71 +40,49 @@ func main() {
 		log.Fatal("IDENTITY_SERVICE_URL environment variable is required")
 	}
 
-	// Ensure the URL ends with a slash for proper path joining
-	if !strings.HasSuffix(identityService, "/") {
-		identityService += "/"
-	}
-
-	router.Any("/v1/auth/*proxyPath", func(c *gin.Context) {
-		proxyPath := c.Param("proxyPath")
-		logger.InfoLogger.Info("Identity Service Called: " + proxyPath)
-		reverseProxy(identityService, proxyPath)(c)
-	})
-
 	// Image Service
 	imageService := os.Getenv("IMAGE_SERVICE_URL")
 	if imageService == "" {
 		log.Fatal("IMAGE_SERVICE_URL environment variable is required")
 	}
 
-	// Ensure the URL ends with a slash for proper path joining
-	if !strings.HasSuffix(imageService, "/") {
-		imageService += "/"
-	}
-
-	router.Any("/v1/image/*proxyPath", func(c *gin.Context) {
-		proxyPath := c.Param("proxyPath")
-		logger.InfoLogger.Info("Image Service Called: " + proxyPath)
-		reverseProxy(imageService, proxyPath)(c)
-	})
+	// Proxy routes
+	router.Any("/v1/auth/*proxyPath", createProxyHandler(identityService, "/v1/auth"))
+	router.Any("/v1/image/*proxyPath", createProxyHandler(imageService, "/v1/image"))
 
 	logger.InfoLogger.Info("Starting HTTP server on port " + port)
-	log.Printf("Starting server on port %s...", port)
-
 	if err := router.Run(":" + port); err != nil {
 		logger.ErrorLogger.Error("Failed to start server: " + err.Error())
 		log.Fatal(err)
 	}
 }
 
-// reverseProxy creates a reverse proxy for the given target URL and path
-func reverseProxy(target string, path string) gin.HandlerFunc {
+// createProxyHandler sets up a proxy for a base target with correct path handling
+func createProxyHandler(target string, prefix string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		targetURL, err := url.Parse(target)
 		if err != nil {
 			logger.ErrorLogger.Error("Failed to parse target URL: " + err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse target URL"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid target URL"})
 			return
 		}
 
-		// Create a new director function to modify the request
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-		// Store the original director
 		originalDirector := proxy.Director
-
-		// Create a new director that preserves query parameters and headers
 		proxy.Director = func(req *http.Request) {
 			originalDirector(req)
 
-			// Remove the prefix from the path
-			req.URL.Path = path
+			// Strip the API Gateway prefix and set real path
+			proxyPath := strings.TrimPrefix(c.Request.URL.Path, prefix)
+			req.URL.Path = proxyPath
+			if !strings.HasPrefix(req.URL.Path, "/") {
+				req.URL.Path = "/" + req.URL.Path
+			}
 
-			// Preserve query parameters
 			req.URL.RawQuery = c.Request.URL.RawQuery
 
-			// Log the final target URL for debugging
-			logger.InfoLogger.Info("Proxying to: " + req.URL.String())
+			logger.InfoLogger.Infof("Proxying to: %s%s", target, req.URL.RequestURI())
 		}
 
 		proxy.ErrorHandler = func(rw http.ResponseWriter, req *http.Request, err error) {
