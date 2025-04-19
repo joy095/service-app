@@ -40,6 +40,7 @@
 		]
 	},
 	"dependencies": {
+		"@tanstack/svelte-query": "^5.74.4",
 		"jwt-decode": "^4.0.0"
 	}
 }

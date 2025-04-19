@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { API } from '$lib/share';
 	import { onMount } from 'svelte';
 
 	let healthStatus = 'Checking...';
 
+
 	onMount(async () => {
 		try {
-			const res = await fetch('http://localhost:8081/health');
+			const res = await fetch(`${API}/health`);
 			if (!res.ok) throw new Error('Not OK');
 
 			const data = await res.json();

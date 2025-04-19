@@ -1,3 +1,5 @@
+import { API } from './share';
+
 export async function apiFetch(path: string, options: RequestInit = {}) {
 	let token = localStorage.getItem('access_token');
 	const refresh = localStorage.getItem('refresh_token');
@@ -13,7 +15,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
 
 	if (res.status === 401) {
 		// try refreshing
-		const refreshRes = await fetch('/api/v1/auth/refresh-token', {
+		const refreshRes = await fetch(`${API}/v1/auth/refresh-token`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -35,4 +37,25 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
 	}
 
 	return res;
+}
+
+export async function logout(user_id: string, access_token: string) {
+	try {
+		const res = await fetch(`${API}/v1/auth/logout`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${access_token}`
+			},
+			body: JSON.stringify({ user_id })
+		});
+
+		if (!res.ok) {
+			const error = await res.json();
+			throw new Error(error.message || 'Logout failed');
+		}
+	} catch (err) {
+		console.error('Logout error:', err);
+		throw err;
+	}
 }

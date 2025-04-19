@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { createMutation } from '@tanstack/svelte-query';
 	import { apiFetch } from '$lib/api';
 
 	let username = '';
@@ -21,6 +23,7 @@
 
 	let showPassword = false;
 	let showConfirmPassword = false;
+	let generalError = '';
 
 	$: isFormValid =
 		username &&
@@ -71,38 +74,29 @@
 		validateField('confirmPassword', confirmPassword);
 	}
 
-	let generalError = '';
+	// Registration mutation with TanStack Query
+	const registerMutation = createMutation({
+		mutationFn: async (userData: { username: string; email: string; password: string }) => {
+			const API = import.meta.env.VITE_API_URL;
+			if (!API) {
+				throw new Error('API URL is not defined');
+			}
 
-	async function handleSubmit(event: Event) {
-		event.preventDefault();
-		hasSubmitted = true;
-		generalError = ''; // Clear previous error
+			const res = await apiFetch(`${API}/v1/auth/register`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(userData)
+			});
 
-		validateAll();
+			const data = await res.json();
 
-		if (Object.values(errors).some((e) => e)) return;
+			if (!res.ok) {
+				throw { data, status: res.status };
+			}
 
-		const API = import.meta.env.VITE_API_URL;
-		if (!API) {
-			generalError = 'API URL is not defined';
-			return;
-		}
-
-		// const res = await apiFetch(`api/v1/auth/register`, {
-		const res = await apiFetch(`${API}/v1/auth/register`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ username, email, password })
-		});
-
-		const data = await res.json();
-
-		console.warn('Response:', data);
-
-		if (!res.ok) {
-			errors = data.errors ?? {};
-			generalError = data.error ?? 'Something went wrong. Please try again.';
-		} else {
+			return data;
+		},
+		onSuccess: (data) => {
 			const accessToken = data.tokens.access_token;
 			const refreshToken = data.tokens.refresh_token;
 
@@ -113,6 +107,7 @@
 			localStorage.setItem('refresh_token', refreshToken);
 			localStorage.setItem('user', JSON.stringify(data.user));
 
+			// Modify fetch to include auth headers
 			window.fetch = (
 				(originalFetch) =>
 				(input, init = {}) => {
@@ -129,8 +124,33 @@
 				}
 			)(window.fetch);
 
-			window.location.href = '/';
+			goto('/profile');
+		},
+		onError: (error: any) => {
+			console.error('Registration error:', error);
+
+			if (error.data) {
+				if (error.data.errors) {
+					errors = error.data.errors;
+				}
+				generalError = error.data.error || 'Something went wrong. Please try again.';
+			} else {
+				generalError = error.message || 'An unexpected error occurred';
+			}
 		}
+	});
+
+	async function handleSubmit(event: Event) {
+		event.preventDefault();
+		hasSubmitted = true;
+		generalError = ''; // Clear previous error
+
+		validateAll();
+
+		if (Object.values(errors).some((e) => e)) return;
+
+		// Submit the form using TanStack mutation
+		$registerMutation.mutate({ username, email, password });
 	}
 </script>
 
@@ -186,7 +206,7 @@
 		/>
 
 		<span
-			class="absolute top-0 right-5 bottom-0 my-auto h-6 w-6 cursor-pointer"
+			class="absolute bottom-0 right-5 top-0 my-auto h-6 w-6 cursor-pointer"
 			on:click={() => (showPassword = !showPassword)}
 		>
 			{#if showPassword}
@@ -217,7 +237,7 @@
 		/>
 
 		<span
-			class="absolute top-0 right-5 bottom-0 my-auto h-6 w-6 cursor-pointer"
+			class="absolute bottom-0 right-5 top-0 my-auto h-6 w-6 cursor-pointer"
 			on:click={() => (showConfirmPassword = !showConfirmPassword)}
 		>
 			{#if showConfirmPassword}
@@ -233,7 +253,10 @@
 	</div>
 
 	<!-- Submit -->
-	<button type="submit" disabled={!isFormValid}>Register</button>
+	<button type="submit" disabled={!isFormValid || $registerMutation.isPending}>
+		{$registerMutation.isPending ? 'Registering...' : 'Register'}
+	</button>
+
 	<p class="sign_up">Don't have an account? <a href="/login">Sign in</a></p>
 
 	{#if generalError}

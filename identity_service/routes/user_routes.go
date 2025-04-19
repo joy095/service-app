@@ -25,7 +25,7 @@ func RegisterRoutes(router *gin.Engine) {
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware())
 	{
-		protected.POST("/logout", middleware.NewRateLimiter("10-15m"), userController.Logout)
+		protected.POST("/logout", middleware.NewRateLimiter("10-5m"), userController.Logout)
 		protected.GET("/user/:username", middleware.NewRateLimiter("30-1m"), userController.GetUserByUsername)
 
 		// Relationship routes

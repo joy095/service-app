@@ -4,14 +4,10 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
-	server: {
-		proxy: {
-			'/api': {
-				target: 'http://localhost:8080/',
-				changeOrigin: true,
-				secure: false,
-				rewrite: (path) => path.replace(/^\/api/, '')
-			}
-		}
+	optimizeDeps: {
+		include: ['@tanstack/svelte-query']
+	},
+	ssr: {
+		noExternal: ['@tanstack/svelte-query']
 	}
 });

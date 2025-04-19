@@ -9,7 +9,62 @@ get http://localhost:8080/v1/auth/health
 get http://api-gateway-gdk9.onrender.com/health
 
 ###
+get https://identity-service-mnai.onrender.com/health
+
+###
+post https://identity-service-mnai.onrender.com/login
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "1234@Joy"
+}
+
+###
+post https://api-gateway-gdk9.onrender.com/v1/auth/login
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "1234@Joy"
+}
+
+###
+post https://identity-service-mnai.onrender.com/register
+Content-Type: application/json
+
+{
+    "username": "test",
+    "email": "test@gmail.com",
+    "password": "1234@Joy"
+}
+
+###
+get http://api-gateway-gdk9.onrender.com/v1/auth/health
+
+###
 get http://api-gateway-gdk9.onrender.com/v1/image/health
+
+###
+POST http://api-gateway-gdk9.onrender.com/v1/auth/register
+Content-Type: application/json
+
+{
+    "username": "test",
+    "email": "test@gmail.com",
+    "password": "1234@Joy"
+}
+
+###
+get https://identity-service-mnai.onrender.com/health
+Content-Type: application/json
+
+{
+    "username": "test",
+    "email": "test@gmail.com",
+    "password": "1234@Joy"
+}
+
 
 ###
 get http://localhost:8081/health
@@ -48,7 +103,7 @@ POST http://localhost:8080/v1/auth/login
 Content-Type: application/json
 
 {
-    "username": "hello",
+    "username": "test",
     "password": "1234@Joy"
 }
 
@@ -95,6 +150,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDI2NTM5M
 POST http://localhost:8081/refresh-token
 Content-Type: application/json
 
+
+###
+get http://localhost:8080/v1/auth/user/test
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ5Nzc1MDYsImlhdCI6MTc0NDk3NjYwNiwiaXNzIjoiaWRlbnRpdHktc2VydmljZSIsImp0aSI6ImU0NTUwODZhLWYxNmMtNDNiOC05NmE2LTY1ZTMwMjM4MDA4ZCIsIm5iZiI6MTc0NDk3NjYwNiwic3ViIjoiMDE5NjQ0ODUtZjYyMi03ZWMxLTk0MDYtNjAwMDMyMzZmMDMzIiwidXNlcl9pZCI6IjAxOTY0NDg1LWY2MjItN2VjMS05NDA2LTYwMDAzMjM2ZjAzMyJ9._k3t1pRhLscNngNjrYBuXJ6nWv0eBPRLwGHU_jin9p4
 
 ###
 POST http://localhost:8080/v1/auth/refresh-token

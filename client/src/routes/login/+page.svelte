@@ -1,172 +1,169 @@
 <script lang="ts">
-	import { apiFetch } from "$lib/api";
+	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { createMutation } from '@tanstack/svelte-query';
+	import { API } from '$lib/share';
+
+	onMount(() => {
+		const token = localStorage.getItem('access_token');
+		const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+		if (token && user?.username) {
+			goto('/profile');
+		}
+	});
 
 	let username = '';
 	let password = '';
-
-	let hasSubmitted = false;
-
-	let errors = {
-		username: '',
-		password: ''
-	};
-
+	let error: string | null = null;
 	let showPassword = false;
 
-	$: isLoginFormValid = username && password && !errors.username && !errors.password;
+	// Using TanStack Query mutation for login
+	const mutation = createMutation({
+		mutationFn: async (credentials: { username: string; password: string }) => {
+			const res = await fetch(`${API}/v1/auth/login`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(credentials)
+			});
 
-	let generalError = '';
+			if (!res.ok) {
+				const err = await res.json();
+				throw new Error(err.message || 'Login failed');
+			}
 
-	async function handleSubmit(event: Event) {
-		event.preventDefault();
-		hasSubmitted = true;
-		generalError = ''; // Clear previous error
+			return res.json();
+		},
+		onSuccess: (data) => {
+			localStorage.setItem('access_token', data.tokens.access_token);
+			localStorage.setItem('refresh_token', data.tokens.refresh_token);
+			localStorage.setItem('user', JSON.stringify(data.user));
 
-
-		if (Object.values(errors).some((e) => e)) return;
-
-
-		const API = import.meta.env.VITE_API_URL;
-		if (!API) {
-			generalError = 'API URL is not defined';
-			return;
+			// Navigate to a protected route
+			goto('/profile');
+		},
+		onError: (err: Error) => {
+			error = err.message;
 		}
+	});
 
-		// const res = await apiFetch(`api/v1/auth/register`, {
-		const res = await apiFetch(`${API}/v1/auth/login`, {
-
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ username, password })
-		});
-
-		const data = await res.json();
-
-		if (!res.ok) {
-			errors = data.errors ?? {};
-		} else {
-			alert('Login successful!');
-		}
+	function login() {
+		error = null;
+		$mutation.mutate({ username, password });
 	}
 </script>
 
-<form on:submit={handleSubmit} class="login_form container mx-auto my-20">
-	<h3>Log in with</h3>
+<div class="login-container">
+	<h1>Login</h1>
 
-	<!-- Username -->
-	<div class="input_box">
-		<label for="username">Username</label>
-		<input id="username" bind:value={username} placeholder="Enter username" />
-		{#if hasSubmitted && errors.username}
-			<p class="text-red-500">{errors.username}</p>
-		{/if}
-	</div>
+	{#if error}
+		<div class="error-message">{error}</div>
+	{/if}
 
-	<!-- Password -->
-	<div class="input_box">
-		<div class="password_title">
-			<label for="password">Password</label>
+	<form on:submit|preventDefault={login}>
+		<div class="form-group">
+			<label for="username">Username</label>
+			<input type="text" id="username" bind:value={username} required />
 		</div>
-		<input
-			id="password"
-			type={showPassword ? 'text' : 'password'}
-			bind:value={password}
-			placeholder="Enter your password"
-		/>
 
-		<span
-			class="absolute top-0 right-5 bottom-0 my-auto h-6 w-6 cursor-pointer"
-			on:click={() => (showPassword = !showPassword)}
-		>
-			{#if showPassword}
-				<img src="/icon/eye-open.svg" alt="icon" loading="lazy" />
-			{:else}
-				<img src="/icon/eye-close.svg" alt="icon" loading="lazy" />
-			{/if}
-		</span>
+		<div class="form-group">
+			<label for="password">Password</label>
+			<div class="password-field">
+				<input
+					type={showPassword ? 'text' : 'password'}
+					id="password"
+					bind:value={password}
+					required
+				/>
+				<button type="button" on:click={() => (showPassword = !showPassword)}>
+					{showPassword ? 'Hide' : 'Show'}
+				</button>
+			</div>
+		</div>
 
-		{#if hasSubmitted && errors.password}
-			<p class="text-red-500">{errors.password}</p>
-		{/if}
-	</div>
-
-	<!-- Submit -->
-	<button type="submit" disabled={!isLoginFormValid}>Log In</button>
-	<p class="sign_up">Don't have an account? <a href="/register">Sign up</a></p>
-</form>
+		<button type="submit" disabled={$mutation.isPending}>
+			{$mutation.isPending ? 'Logging in...' : 'Login'}
+		</button>
+	</form>
+</div>
 
 <style>
-	.login_form {
-		width: 100%;
-		max-width: 435px;
-		background: #fff;
-		border-radius: 6px;
-		padding: 41px 30px;
-		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-	}
-	.login_form h3 {
-		font-size: 20px;
-		text-align: center;
+	.login-container {
+		max-width: 400px;
+		margin: 0 auto;
+		padding: 2rem;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 
-	form .input_box label {
-		display: block;
-		font-weight: 500;
-		margin-bottom: 0.1rem;
-	}
-	/* Input field styling */
-	form .input_box input {
-		width: 100%;
-		height: 3rem;
-		border: 1px solid #dadaf2;
-		border-radius: 5px;
-		outline: none;
-		background: #f8f8fb;
-		font-size: 1rem;
-		padding: 0px 1rem;
-		margin-bottom: 1rem;
-		transition: 0.2s ease;
-	}
-	form .input_box input:focus {
-		border-color: #626cd6;
-	}
-	form .input_box .password_title {
-		display: flex;
-		justify-content: space-between;
+	h1 {
 		text-align: center;
+		margin-bottom: 1.5rem;
 	}
-	form .input_box {
-		position: relative;
+
+	.form-group {
+		margin-bottom: 1rem;
 	}
-	a {
-		text-decoration: none;
-		color: #626cd6;
+
+	label {
+		display: block;
+		margin-bottom: 0.5rem;
 		font-weight: 500;
 	}
-	a:hover {
-		text-decoration: underline;
-	}
-	/* Login button styling */
-	form button {
+
+	input {
 		width: 100%;
-		height: 3rem;
-		border-radius: 5px;
-		border: none;
-		outline: none;
-		background: #626cd6;
-		color: #fff;
-		font-size: 18px;
-		font-weight: 500;
-		text-transform: uppercase;
+		padding: 0.5rem;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+	}
+
+	.password-field {
+		display: flex;
+	}
+
+	.password-field input {
+		flex: 1;
+		border-radius: 4px 0 0 4px;
+	}
+
+	.password-field button {
+		padding: 0.5rem;
+		background: #f1f1f1;
+		border: 1px solid #ccc;
+		border-left: none;
+		border-radius: 0 4px 4px 0;
 		cursor: pointer;
-		margin-bottom: 28px;
-		transition: 0.3s ease;
 	}
-	form button:hover {
-		background: #4954d0;
+
+	button[type='submit'] {
+		width: 100%;
+		padding: 0.75rem;
+		background: #4a4e69;
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 1rem;
+		margin-top: 1rem;
 	}
-	form button:disabled {
-		background: rgba(73, 84, 208, 0.7);
+
+	button[type='submit']:hover {
+		background: #3d405b;
+	}
+
+	button[type='submit']:disabled {
+		background: #9a9ca9;
 		cursor: not-allowed;
+	}
+
+	.error-message {
+		background: #ffebee;
+		color: #c62828;
+		padding: 0.75rem;
+		border-radius: 4px;
+		margin-bottom: 1rem;
 	}
 </style>
