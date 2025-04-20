@@ -14,7 +14,6 @@
 		}
 	});
 
-	// User profile query using TanStack Query
 	const userQuery = createQuery({
 		queryKey: ['userProfile'],
 		queryFn: async () => {
@@ -40,7 +39,6 @@
 
 			let res = await fetchUserProfile(accessToken);
 
-			// If token expired or unauthorized
 			if (res.status === 401 && refreshToken) {
 				const refreshRes = await fetch(`${API}/v1/auth/refresh-token`, {
 					method: 'POST',
@@ -56,10 +54,8 @@
 					localStorage.setItem('access_token', refreshData.access_token);
 					localStorage.setItem('refresh_token', refreshData.refresh_token);
 
-					// Retry original request with new token
 					res = await fetchUserProfile(refreshData.access_token);
 				} else {
-					// If refresh failed, logout
 					localStorage.removeItem('access_token');
 					localStorage.removeItem('refresh_token');
 					localStorage.removeItem('user');
@@ -78,7 +74,6 @@
 		}
 	});
 
-	// Logout mutation
 	const logoutMutation = createMutation({
 		mutationFn: async () => {
 			const accessToken = localStorage.getItem('access_token');
@@ -91,14 +86,12 @@
 			return apiLogout(user.id, accessToken);
 		},
 		onSuccess: () => {
-			// Clear local storage
 			localStorage.removeItem('access_token');
 			localStorage.removeItem('refresh_token');
 			localStorage.removeItem('user');
-
-			goto('/login'); // Redirect to login page
+			goto('/login');
 		},
-		onError: (error) => {
+		onError: (error: Error) => {
 			alert(`Failed to logout: ${error.message}`);
 		}
 	});

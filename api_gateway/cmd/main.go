@@ -36,15 +36,9 @@ func main() {
 
 	// Identity Service
 	identityService := os.Getenv("IDENTITY_SERVICE_URL")
-	if identityService == "" {
-		log.Fatal("IDENTITY_SERVICE_URL environment variable is required")
-	}
 
 	// Image Service
 	imageService := os.Getenv("IMAGE_SERVICE_URL")
-	if imageService == "" {
-		log.Fatal("IMAGE_SERVICE_URL environment variable is required")
-	}
 
 	// Proxy routes
 	router.Any("/v1/auth/*proxyPath", createProxyHandler(identityService, "/v1/auth"))

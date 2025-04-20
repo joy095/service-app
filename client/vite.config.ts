@@ -8,6 +8,6 @@ export default defineConfig({
 		include: ['@tanstack/svelte-query']
 	},
 	ssr: {
-		noExternal: ['@tanstack/svelte-query']
+		noExternal: ['@tanstack/svelte-query', '@tanstack/svelte-query-devtools']
 	}
 });

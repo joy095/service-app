@@ -315,3 +315,27 @@ func (uc *UserController) GetUserByUsername(c *gin.Context) {
 
 	logger.InfoLogger.Info("User retrieved successfully")
 }
+
+// GetUserByID retrieves a user by ID
+func (uc *UserController) GetUserByID(c *gin.Context) {
+	logger.InfoLogger.Info("GetUserByID function called")
+
+	id := c.Param("id")
+
+	user, err := models.GetUserByID(db.DB, id)
+	if err != nil {
+		logger.ErrorLogger.Errorf("User not found: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+		},
+	})
+
+	logger.InfoLogger.Info("User retrieved successfully by ID")
+}

@@ -26,14 +26,22 @@ func CorsMiddleware() gin.HandlerFunc {
 		origins[i] = strings.TrimSpace(origins[i])
 	}
 
-	logger.InfoLogger.Info("CORS configured with origins: " + strings.Join(origins, ", "))
-
-	return cors.New(cors.Config{
-		AllowOrigins:     origins,
+	corsConfig := cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Refresh_token", "Accept", "Cache-Control", "X-Requested-With"},
-		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
-		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization", "New-Access-Token", "New-Refresh-Token"},
 		MaxAge:           12 * time.Hour,
-	})
+		AllowCredentials: true,
+	}
+
+	// If wildcard, disable AllowCredentials (because "*" + credentials = CORS error)
+	if len(origins) == 1 && origins[0] == "*" {
+		corsConfig.AllowAllOrigins = true
+		corsConfig.AllowCredentials = false
+	} else {
+		corsConfig.AllowOrigins = origins
+	}
+
+	logger.InfoLogger.Info("CORS configured with origins: " + strings.Join(origins, ", "))
+	return cors.New(corsConfig)
 }

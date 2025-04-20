@@ -306,3 +306,16 @@ func GetUserByUsername(db *pgxpool.Pool, username string) (*User, error) {
 	}
 	return &user, nil
 }
+
+// GetUserByID retrieves a user by id
+func GetUserByID(db *pgxpool.Pool, id string) (*User, error) {
+	var user User
+	query := `SELECT id, username, email, password_hash, refresh_token FROM users WHERE id = $1`
+	err := db.QueryRow(context.Background(), query, id).Scan(
+		&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.RefreshToken,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
