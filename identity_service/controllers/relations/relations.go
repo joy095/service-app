@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/joy095/identity/config/db"
 	"github.com/joy095/identity/logger"
+	"github.com/joy095/identity/models"
 	"github.com/joy095/identity/utils/jwt_parse"
 )
 
@@ -193,7 +194,14 @@ func (r *RelationController) RejectRequest(c *gin.Context) {
 }
 
 func (r *RelationController) ListPendingRequests(c *gin.Context) {
-	userID := c.GetString("user_id")
+	// Extract the authenticated user ID (toUserID)
+	userID, err := jwt_parse.ExtractUserID(c)
+	if err != nil {
+		logger.ErrorLogger.Error("Failed to extract user ID: " + err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
 	rows, err := db.DB.Query(context.Background(), `
 		SELECT requester_id FROM user_connections WHERE addressee_id = $1 AND status = 'pending'
 	`, userID)
@@ -213,7 +221,15 @@ func (r *RelationController) ListPendingRequests(c *gin.Context) {
 }
 
 func (r *RelationController) ListConnections(c *gin.Context) {
-	userID := c.GetString("user_id")
+
+	// Extract the authenticated user ID (toUserID)
+	userID, err := jwt_parse.ExtractUserID(c)
+	if err != nil {
+		logger.ErrorLogger.Error("Failed to extract user ID: " + err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
 	rows, err := db.DB.Query(context.Background(), `
 		SELECT requester_id, addressee_id FROM user_connections 
 		WHERE (requester_id = $1 OR addressee_id = $1) AND status = 'accepted'
@@ -237,21 +253,53 @@ func (r *RelationController) ListConnections(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"connections": connections})
 }
 
+// CheckConnectionStatus Check connection status between two users using JWT and specific user route
 func (r *RelationController) CheckConnectionStatus(c *gin.Context) {
-	userID := c.GetString("user_id")
-	targetID := c.Param("user_id")
+	// Extract the authenticated user ID
+	userID, err := jwt_parse.ExtractUserID(c)
+	if err != nil {
+		logger.ErrorLogger.Error("Failed to extract user ID: " + err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
 
+	username := c.Param("username")
+
+	log.Print("Username: ", username)
+
+	user, err := models.GetUserByUsername(db.DB, username)
+	if err != nil {
+		logger.ErrorLogger.Error("User not found")
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	targetID := user.ID.String()
+
+	// Validate UUIDs
+	if _, err := uuid.Parse(userID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+	if _, err := uuid.Parse(targetID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid target user ID format"})
+		return
+	}
+
+	// Query the connection status
 	var status string
-	err := db.DB.QueryRow(context.Background(), `
+	query := `
 		SELECT status FROM user_connections 
 		WHERE (requester_id = $1 AND addressee_id = $2)
 		   OR (requester_id = $2 AND addressee_id = $1)
-	`, userID, targetID).Scan(&status)
+	`
+	err = db.DB.QueryRow(context.Background(), query, userID, targetID).Scan(&status)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusOK, gin.H{"status": "none"})
 		return
 	} else if err != nil {
+		logger.ErrorLogger.Errorf("Database error while checking connection status: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check status"})
 		return
 	}

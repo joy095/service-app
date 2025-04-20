@@ -30,13 +30,13 @@ func RegisterRoutes(router *gin.Engine) {
 
 	}
 
-	// Relationship routes
+	// Relationship routes using JWT by default to send accept and reject requests
 	router.POST("/relation/request", relationController.SendRequest)
 	router.POST("/relation/accept", relationController.AcceptRequest)
 	router.POST("/relation/reject", relationController.RejectRequest)
 	router.GET("/relation/pending", relationController.ListPendingRequests)
 	router.GET("/relation/connections", relationController.ListConnections)
-	router.GET("/relation/status/:user_id", relationController.CheckConnectionStatus)
+	router.GET("/relation/status/:username", relationController.CheckConnectionStatus)
 
 	// // Public routes
 	// router.POST("/register", middleware.CombinedRateLimiter("5-5m", "20-2h"), userController.Register)

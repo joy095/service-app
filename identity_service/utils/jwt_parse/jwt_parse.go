@@ -59,7 +59,7 @@ func ParseJWTToken() gin.HandlerFunc {
 	}
 }
 
-// jwt_parse/jwt.go
+// ExtractUserID extracts the user_id from the JWT token in the request context.
 func ExtractUserID(c *gin.Context) (string, error) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
