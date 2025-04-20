@@ -10,13 +10,21 @@ import (
 func LoadEnv() {
 	env := os.Getenv("GO_ENV")
 
+	var envFile string
 	if env == "development" {
-		if err := godotenv.Load(".env.local"); err != nil {
-			log.Printf("No .env.local file found or failed to load: %v", err)
-		} else {
-			log.Println("Loaded environment variables from .env.local")
+		envFile = ".env.local"
+	} else {
+		envFile = ".env"
+	}
+
+	// Attempt to load the environment file
+	if err := godotenv.Load(envFile); err != nil {
+		if env == "development" { // Only log errors in development
+			log.Printf("No %s file found or failed to load: %v", envFile, err)
 		}
 	} else {
-		log.Println("Production mode: using system environment variables only")
+		if env == "development" { // Only log success in development
+			log.Printf("Loaded environment variables from %s", envFile)
+		}
 	}
 }

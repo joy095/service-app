@@ -165,6 +165,9 @@ func (uc *UserController) Login(c *gin.Context) {
 func (uc *UserController) RefreshToken(c *gin.Context) {
 	logger.InfoLogger.Info("RefreshToken token function called")
 
+	// Simulate refresh token API call
+	time.Sleep(1 * time.Second) // Simulating network latency
+
 	refreshToken := c.GetHeader("Refresh_token")
 	if refreshToken == "" {
 		logger.ErrorLogger.Error("No refresh token provided in header")

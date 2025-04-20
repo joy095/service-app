@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/joy095/identity/config/db"
+	"github.com/joy095/identity/logger"
+	"github.com/joy095/identity/utils/jwt_parse"
 )
 
 // RelationController handles user relationship operations
@@ -18,6 +20,7 @@ func NewRelationController() *RelationController {
 	return &RelationController{}
 }
 
+// SendRequest sends a friend request to another user
 func (r *RelationController) SendRequest(c *gin.Context) {
 	var payload struct {
 		ToUserID string `json:"addressee_id"`
@@ -28,7 +31,12 @@ func (r *RelationController) SendRequest(c *gin.Context) {
 		return
 	}
 
-	fromUserID := c.GetString("user_id")
+	fromUserID, err := jwt_parse.ExtractUserID(c)
+	if err != nil {
+		logger.ErrorLogger.Error("Failed to extract user ID: " + err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Check for empty user IDs
 	if fromUserID == "" || payload.ToUserID == "" {
@@ -36,27 +44,24 @@ func (r *RelationController) SendRequest(c *gin.Context) {
 		return
 	}
 
-	// Validate UUID format
+	// Validate UUIDs
 	if _, err := uuid.Parse(fromUserID); err != nil {
-		log.Println("Invalid fromUserID:", fromUserID)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sender UUID format"})
 		return
 	}
 	if _, err := uuid.Parse(payload.ToUserID); err != nil {
-		log.Println("Invalid toUserID:", payload.ToUserID)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid addressee UUID format"})
 		return
 	}
 
-	// Prevent sending a request to oneself
 	if fromUserID == payload.ToUserID {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot send request to yourself"})
 		return
 	}
 
-	// Check if relationship already exists
+	// Check for existing relationship
 	var exists bool
-	err := db.DB.QueryRow(context.Background(), `
+	err = db.DB.QueryRow(context.Background(), `
 		SELECT EXISTS(
 			SELECT 1 FROM user_connections 
 			WHERE (requester_id = $1 AND addressee_id = $2) 
@@ -65,7 +70,6 @@ func (r *RelationController) SendRequest(c *gin.Context) {
 	`, fromUserID, payload.ToUserID).Scan(&exists)
 
 	if err != nil {
-		log.Printf("Error checking existing relationship: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check existing relationship"})
 		return
 	}
@@ -75,14 +79,13 @@ func (r *RelationController) SendRequest(c *gin.Context) {
 		return
 	}
 
-	// Insert the connection request
 	_, err = db.DB.Exec(context.Background(), `
 		INSERT INTO user_connections (requester_id, addressee_id, status)
 		VALUES ($1, $2, 'pending')
 	`, fromUserID, payload.ToUserID)
 
 	if err != nil {
-		log.Printf("Error inserting connection request: %v", err)
+		log.Printf("Error inserting connection request (from: %s, to: %s): %v", fromUserID, payload.ToUserID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request"})
 		return
 	}
@@ -90,44 +93,99 @@ func (r *RelationController) SendRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Connection request sent"})
 }
 
+// AcceptRequest handles accepting a pending connection request.
 func (r *RelationController) AcceptRequest(c *gin.Context) {
 	var payload struct {
 		FromUserID string `json:"requester_id"`
 	}
+
+	// Validate request body
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	toUserID := c.GetString("user_id")
-	_, err := db.DB.Exec(context.Background(), `
-		UPDATE user_connections SET status = 'accepted'
+	// Extract authenticated user's ID (as addressee)
+	toUserID, err := jwt_parse.ExtractUserID(c)
+	if err != nil {
+		logger.ErrorLogger.Error("Failed to extract user ID: " + err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate UUIDs
+	if _, err := uuid.Parse(payload.FromUserID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid requester UUID format"})
+		return
+	}
+	if _, err := uuid.Parse(toUserID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid addressee UUID format"})
+		return
+	}
+
+	// Perform update: accept the request if pending
+	result, err := db.DB.Exec(context.Background(), `
+		UPDATE user_connections 
+		SET status = 'accepted', updated_at = NOW()
 		WHERE requester_id = $1 AND addressee_id = $2 AND status = 'pending'
 	`, payload.FromUserID, toUserID)
 	if err != nil {
+		logger.ErrorLogger.Errorf("Failed to accept request: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to accept request"})
+		return
+	}
+
+	if result.RowsAffected() == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No pending request found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Connection request accepted"})
 }
 
+// RejectRequest reject request from a user
 func (r *RelationController) RejectRequest(c *gin.Context) {
 	var payload struct {
 		FromUserID string `json:"requester_id"`
 	}
+
+	// Bind JSON payload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	toUserID := c.GetString("user_id")
-	_, err := db.DB.Exec(context.Background(), `
+	// Extract the authenticated user ID (toUserID)
+	toUserID, err := jwt_parse.ExtractUserID(c)
+	if err != nil {
+		logger.ErrorLogger.Error("Failed to extract user ID: " + err.Error())
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate UUIDs
+	if _, err := uuid.Parse(payload.FromUserID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid requester UUID format"})
+		return
+	}
+	if _, err := uuid.Parse(toUserID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid addressee UUID format"})
+		return
+	}
+
+	// Delete the pending request
+	result, err := db.DB.Exec(context.Background(), `
 		DELETE FROM user_connections
 		WHERE requester_id = $1 AND addressee_id = $2 AND status = 'pending'
 	`, payload.FromUserID, toUserID)
 	if err != nil {
+		logger.ErrorLogger.Errorf("Failed to reject request: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reject request"})
+		return
+	}
+
+	if result.RowsAffected() == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No pending request found"})
 		return
 	}
 
