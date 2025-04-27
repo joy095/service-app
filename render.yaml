@@ -1,52 +1,78 @@
 services:
-  - type: web
-    name: api-gateway
+  - name: api-gateway
+    type: web
     env: docker
-    repo: https://github.com/joy095/service-app
-    dockerfilePath: api_gateway/Dockerfile
+    build:
+      dockerfilePath: api_gateway/Dockerfile
     envVars:
-      - fromGroup: api-gateway-env
-    plan: free
-    autoDeploy: true
-    buildFilter:
-      paths:
-        - api_gateway/**
+      - key: PORT
+        value: ${PORT}
+      - key: IDENTITY_SERVICE_URL
+        value: ${IDENTITY_SERVICE_URL}
+      - key: IMAGE_SERVICE_URL
+        value: ${IMAGE_SERVICE_URL}
+      - key: ALLOWED_ORIGINS
+        value: ${ALLOWED_ORIGINS}
+    dependsOn:
+      - identity-service
+      - image-service
+      - word-service
 
-  - type: web
-    name: identity-service
+  - name: identity-service
+    type: web
     env: docker
-    repo: https://github.com/joy095/service-app
-    dockerfilePath: identity_service/Dockerfile
+    build:
+      dockerfilePath: identity_service/Dockerfile
     envVars:
-      - fromGroup: identity-service-env
-    plan: free
-    autoDeploy: true
-    buildFilter:
-      paths:
-        - identity_service/**
+      - key: PORT
+        value: ${PORT}
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+      - key: REDIS_HOST
+        value: ${REDIS_HOST}
+      - key: REDIS_PASSWORD
+        value: ${REDIS_PASSWORD}
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: JWT_SECRET_REFRESH
+        value: ${JWT_SECRET_REFRESH}
+      - key: JWT_OTP_SECRET
+        value: ${JWT_OTP_SECRET}
+      - key: SMTP_HOST
+        value: ${SMTP_HOST}
+      - key: SMTP_PORT
+        value: ${SMTP_PORT}
+      - key: SMTP_USERNAME
+        value: ${SMTP_USERNAME}
+      - key: SMTP_PASSWORD
+        value: ${SMTP_PASSWORD}
+      - key: FROM_EMAIL
+        value: ${FROM_EMAIL}
+      - key: API_GATEWAY
+        value: ${API_GATEWAY}
+      - key: WORD_FILTER_SERVICE_URL
+        value: ${WORD_FILTER_SERVICE_URL}
+      - key: ALLOWED_ORIGINS
+        value: ${ALLOWED_ORIGINS}
 
-  - type: web
-    name: word-service
+  - name: word-service
+    type: web
     env: docker
-    repo: https://github.com/joy095/service-app
-    dockerfilePath: word_filter_service/Dockerfile
+    build:
+      dockerfilePath: word_filter_service/Dockerfile
     envVars:
-      - fromGroup: word-service-env
-    plan: free
-    autoDeploy: true
-    buildFilter:
-      paths:
-        - word_filter_service/**
+      - key: PORT
+        value: ${PORT}
+      - key: ALLOWED_ORIGINS
+        value: ${ALLOWED_ORIGINS}
 
-  - type: web
-    name: image-service
+  - name: image-service
+    type: web
     env: docker
-    repo: https://github.com/joy095/service-app
-    dockerfilePath: image_check/Dockerfile
+    build:
+      dockerfilePath: image_check/Dockerfile
     envVars:
-      - fromGroup: image-service-env
-    plan: free
-    autoDeploy: true
-    buildFilter:
-      paths:
-        - image_check/**
+      - key: PORT
+        value: ${PORT}
+      - key: ALLOWED_ORIGINS
+        value: ${ALLOWED_ORIGINS}
