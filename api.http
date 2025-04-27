@@ -9,7 +9,22 @@ get http://localhost:8080/v1/auth/health
 get http://api-gateway-gdk9.onrender.com/health
 
 ###
+get https://image-service-4gpg.onrender.com/health
+
+###
+get http://api-gateway-gdk9.onrender.com/v1/auth/health
+
+###
 get https://identity-service-mnai.onrender.com/health
+
+###
+post http://api-gateway-gdk9.onrender.com/v1/auth/login
+Content-Type: application/json
+
+{
+    "username": "test",
+    "password": "1234@Joy"
+}
 
 ###
 post https://identity-service-mnai.onrender.com/login

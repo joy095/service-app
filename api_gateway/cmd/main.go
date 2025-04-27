@@ -31,7 +31,7 @@ func main() {
 	router.Use(middleware.CorsMiddleware())
 
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "ok"})
+		c.JSON(http.StatusOK, gin.H{"message": "ok from api-gateway"})
 	})
 
 	// Identity Service
