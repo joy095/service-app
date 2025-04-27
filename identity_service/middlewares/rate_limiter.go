@@ -14,16 +14,17 @@ import (
 	redisstore "github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
-// createRedisStore creates a Redis-backed rate limiter store
-func createRedisStore() (limiter.Store, error) {
+// createRedisStore creates a Redis-backed rate limiter store with a route-specific prefix
+func createRedisStore(routeID string) (limiter.Store, error) {
 	rdb := db.GetRedisClient()
 
+	// Use a route-specific prefix to ensure rate limits are tracked separately
 	store, err := redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
-		Prefix:   "rate_limiter",
+		Prefix:   fmt.Sprintf("rate_limiter:%s", routeID),
 		MaxRetry: 3,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create redis store: %w", err)
+		return nil, fmt.Errorf("failed to create redis store for route %s: %w", routeID, err)
 	}
 	return store, nil
 }
@@ -64,20 +65,20 @@ func ParseCustomRate(rateStr string) (limiter.Rate, error) {
 	}, nil
 }
 
-// NewRateLimiter creates middleware with custom periods like "10-2m"
-func NewRateLimiter(rateStr string) gin.HandlerFunc {
+// NewRateLimiter creates middleware with custom periods like "10-2m" for a specific route
+func NewRateLimiter(rateStr, routeID string) gin.HandlerFunc {
 	rate, err := ParseCustomRate(rateStr)
 	if err != nil {
-		log.Printf("Error parsing rate: %v", err)
+		log.Printf("Error parsing rate for route %s: %v", routeID, err)
 		// Return a fallback middleware that just passes through
 		return func(c *gin.Context) {
 			c.Next()
 		}
 	}
 
-	store, err := createRedisStore()
+	store, err := createRedisStore(routeID)
 	if err != nil {
-		log.Printf("Error creating Redis store: %v", err)
+		log.Printf("Error creating Redis store for route %s: %v", routeID, err)
 		// Return a fallback middleware that just passes through
 		return func(c *gin.Context) {
 			c.Next()
@@ -88,11 +89,11 @@ func NewRateLimiter(rateStr string) gin.HandlerFunc {
 	return ginmiddleware.NewMiddleware(limiterInstance)
 }
 
-// CombinedRateLimiter accepts multiple custom rate strings
-func CombinedRateLimiter(rateStrings ...string) gin.HandlerFunc {
+// CombinedRateLimiter accepts multiple custom rate strings for a specific route
+func CombinedRateLimiter(routeID string, rateStrings ...string) gin.HandlerFunc {
 	middlewares := make([]gin.HandlerFunc, len(rateStrings))
 	for i, rateStr := range rateStrings {
-		middlewares[i] = NewRateLimiter(rateStr)
+		middlewares[i] = NewRateLimiter(rateStr, routeID)
 	}
 	return func(c *gin.Context) {
 		for _, mw := range middlewares {

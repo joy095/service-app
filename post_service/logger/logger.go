@@ -59,7 +59,7 @@ func InitLoggers() {
 		os.Mkdir("logs", 0755) // Create logs directory if missing
 	}
 
-	serviceName := "word-filter-service"
+	serviceName := "post-service"
 
 	// Create base loggers
 	infoBaseLogger := NewLogger(LoggerConfig{
@@ -81,6 +81,6 @@ func InitLoggers() {
 	})
 
 	// Attach service name field
-	InfoLogger = infoBaseLogger.WithField("word-filter-service", serviceName)
-	ErrorLogger = errorBaseLogger.WithField("word-filter-service", serviceName)
+	InfoLogger = infoBaseLogger.WithField("post-service", serviceName)
+	ErrorLogger = errorBaseLogger.WithField("post-service", serviceName)
 }

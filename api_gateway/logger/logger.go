@@ -59,7 +59,7 @@ func InitLoggers() {
 		os.Mkdir("logs", 0755) // Create logs directory if missing
 	}
 
-	serviceName := "identity-service"
+	serviceName := "api-gateway"
 
 	// Create base loggers
 	infoBaseLogger := NewLogger(LoggerConfig{

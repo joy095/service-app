@@ -1,6 +1,10 @@
+/tmp
+
 .env.example
 
 .env
+
+/uploads
 
 /logs
 
